@@ -114,6 +114,17 @@ async function writeFile(dir, file, bytes) {
   await writable.close();
 }
 
+async function readBytes(dir, file) {
+  const parts = file.split("/");
+  let folder = dir;
+  try {
+    for (const part of parts.slice(0, -1)) folder = await folder.getDirectoryHandle(part);
+    return new Uint8Array(await (await (await folder.getFileHandle(parts.at(-1))).getFile()).arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
 async function removeFile(dir, file) {
   const parts = file.split("/");
   let folder = dir;
@@ -142,8 +153,35 @@ async function installedFiles(dir, manifest) {
   return out;
 }
 
+// Antivirus (Windows Defender especially) scans each file Chrome writes and can quarantine one as a false
+// positive. Changed files are written to this folder first and read back; only if all of them survive is
+// the working copy touched, so a blocked file can never leave Crunchilist half-installed.
+const STAGING = ".crunchilist-update";
+const SETTLE_MS = 1500;
+
+const sameBytes = (a, b) => Boolean(a && b) && a.length === b.length && a.every((byte, index) => byte === b[index]);
+const blocked = (file) => new UpdateError(`Your antivirus blocked ${file} while it was being written, so nothing was changed. Use Download instead, or allow the Crunchilist folder in your antivirus.`, "blocked");
+
+async function stageAndCheck(dir, writes, settleMs) {
+  await dir.removeEntry(STAGING, { recursive: true }).catch(() => {});
+  const stage = await dir.getDirectoryHandle(STAGING, { create: true });
+  try {
+    for (const [file, bytes] of writes) {
+      try {
+        await writeFile(stage, file, bytes);
+      } catch {
+        throw blocked(file);
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, settleMs));
+    for (const [file, bytes] of writes) if (!sameBytes(await readBytes(stage, file), bytes)) throw blocked(file);
+  } finally {
+    await dir.removeEntry(STAGING, { recursive: true }).catch(() => {});
+  }
+}
+
 // latest: { version, ref } from the update check. onStep(text) reports progress.
-export async function installUpdate(latest, onStep = () => {}) {
+export async function installUpdate(latest, onStep = () => {}, { settleMs = SETTLE_MS } = {}) {
   const dir = await chooseFolder();
   onStep("Checking the new version…");
   const { sha } = await getJson(`${API}/commits/${encodeURIComponent(latest.ref || "master")}`);
@@ -157,16 +195,43 @@ export async function installUpdate(latest, onStep = () => {}) {
   if (compareVersions(manifest.version, running.version) <= 0) throw new UpdateError("You already have the newest version.", "current");
 
   const files = packageFiles(tree, manifest).filter((file) => file.path !== "manifest.json");
+  const old = new Map();
+  const changed = [];
+  for (const file of files) {
+    const current = await readBytes(dir, file.path);
+    if (current && (await gitBlobSha(current)) === file.sha) continue;
+    old.set(file.path, current);
+    changed.push(file);
+  }
   const bytes = new Map();
-  await inBatches(files, DOWNLOADS_AT_ONCE, async (file) => {
+  await inBatches(changed, DOWNLOADS_AT_ONCE, async (file) => {
     bytes.set(file.path, await download(sha, file));
-    onStep(`Downloading ${bytes.size} of ${files.length}…`);
+    onStep(`Downloading ${bytes.size} of ${changed.length}…`);
   });
+  const manifestBytes = new TextEncoder().encode(`${JSON.stringify(storeManifest(manifest), null, 2)}\n`);
+  const writes = [...changed.map((file) => [file.path, bytes.get(file.path)]), ["manifest.json", manifestBytes]];
+
+  onStep("Checking the files with your antivirus…");
+  await stageAndCheck(dir, writes, settleMs);
 
   onStep("Installing…");
-  for (const file of files) await writeFile(dir, file.path, bytes.get(file.path));
+  const written = [];
+  try {
+    for (const file of changed) {
+      written.push(file.path);
+      await writeFile(dir, file.path, bytes.get(file.path));
+      if (!sameBytes(await readBytes(dir, file.path), bytes.get(file.path))) throw blocked(file.path);
+    }
+  } catch (error) {
+    // Put back what was there, so the copy keeps running the version it reports.
+    for (const file of written) {
+      const before = old.get(file);
+      await (before ? writeFile(dir, file, before) : removeFile(dir, file)).catch(() => {});
+    }
+    throw error instanceof UpdateError ? error : blocked(written.at(-1));
+  }
   for (const file of staleFiles(await installedFiles(dir, manifest), files, manifest)) await removeFile(dir, file).catch(() => {});
   // Last, so a copy interrupted mid-install still reports its old version and the next press redoes it.
-  await writeFile(dir, "manifest.json", new TextEncoder().encode(`${JSON.stringify(storeManifest(manifest), null, 2)}\n`));
-  return { version: manifest.version };
+  await writeFile(dir, "manifest.json", manifestBytes);
+  return { version: manifest.version, changed: changed.length };
 }

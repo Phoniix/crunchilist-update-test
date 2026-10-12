@@ -5,12 +5,24 @@ import { gitBlobSha } from "../lib/update-files.js";
 const encode = (text) => new TextEncoder().encode(text);
 const decode = (bytes) => new TextDecoder().decode(bytes);
 
+// quarantine(path) plays the antivirus: true deletes the file as it is written, like Defender did.
+let quarantine = () => false;
 class FakeFile {
-  constructor(data, log, path) { this.kind = "file"; this.data = data; this.log = log; this.path = path; }
-  async getFile() { const data = this.data; return { text: async () => decode(data) }; }
+  constructor(data, log, path, parent, name) { Object.assign(this, { kind: "file", data, log, path, parent, name }); }
+  async getFile() { const data = this.data; return { text: async () => decode(data), arrayBuffer: async () => data.slice().buffer }; }
   async createWritable() {
     let next = null;
-    return { write: async (bytes) => { next = bytes; }, close: async () => { this.data = next; this.log.push(this.path); } };
+    return {
+      write: async (bytes) => { next = bytes; },
+      close: async () => {
+        if (quarantine(this.path)) {
+          this.parent.children.delete(this.name);
+          throw Object.assign(new Error("Aborted due to security policy."), { name: "AbortError" });
+        }
+        this.data = next;
+        this.log.push(this.path);
+      },
+    };
   }
 }
 class FakeDir {
@@ -24,7 +36,7 @@ class FakeDir {
   }
   async getFileHandle(name, { create = false } = {}) {
     let child = this.children.get(name);
-    if (!child && create) this.children.set(name, (child = new FakeFile(new Uint8Array(), this.log, `${this.path}${name}`)));
+    if (!child && create) this.children.set(name, (child = new FakeFile(new Uint8Array(), this.log, `${this.path}${name}`, this, name)));
     if (child?.kind !== "file") throw this.missing();
     return child;
   }
@@ -66,7 +78,8 @@ const REPO_FILES = {
   "scripts/package.mjs": "dev only",
 };
 
-async function setUp({ local = {}, tamper = null, repo = REPO_FILES } = {}) {
+async function setUp({ local = {}, tamper = null, repo = REPO_FILES, block = () => false } = {}) {
+  quarantine = () => false;
   const tree = [];
   for (const [path, text] of Object.entries(repo)) tree.push({ path, type: "blob", sha: await gitBlobSha(encode(text)), size: text.length });
   const dir = await folderWith({ "manifest.json": RUNNING_TEXT, "app/app.js": "old app", "app/old.js": "gone next version", "notes.txt": "mine", "dev/keep.js": "dev", ...local });
@@ -82,12 +95,16 @@ async function setUp({ local = {}, tamper = null, repo = REPO_FILES } = {}) {
     return { ok: false, status: 404 };
   };
   const { installUpdate } = await import("../app/updater.js");
-  return { dir, run: () => installUpdate({ version: "1.0.200", ref: "master" }) };
+  quarantine = block;
+  return { dir, run: () => installUpdate({ version: "1.0.200", ref: "master" }, () => {}, { settleMs: 0 }) };
 }
 
 test("an update writes the new files, drops removed ones, and writes the manifest last", async () => {
-  const { dir, run } = await setUp();
-  assert.deepEqual(await run(), { version: "1.0.200" });
+  const { dir, run } = await setUp({ local: { "lib/a.js": "new lib" } });
+  assert.deepEqual(await run(), { version: "1.0.200", changed: 2 });
+  assert.ok(!dir.log.includes("lib/a.js"), "files that already match are not rewritten");
+  assert.ok(dir.log.includes(".crunchilist-update/app/app.js"), "changed files are test-written first");
+  assert.ok(!dir.children.has(".crunchilist-update"), "the test folder is removed");
   assert.equal(await read(dir, "app/app.js"), "new app");
   assert.equal(await read(dir, "lib/a.js"), "new lib");
   assert.equal(await read(dir, "content/crunchilist.js"), "bundle");
@@ -106,6 +123,23 @@ test("a file that doesn't match GitHub's fingerprint stops the update before any
   await assert.rejects(run(), { code: "integrity" });
   assert.deepEqual(dir.log, []);
   assert.equal(await read(dir, "app/app.js"), "old app");
+});
+
+test("a file the antivirus removes during the test write leaves the working copy untouched", async () => {
+  const { dir, run } = await setUp({ block: (path) => path === ".crunchilist-update/lib/a.js" });
+  await assert.rejects(run(), { code: "blocked", message: /lib\/a\.js/ });
+  assert.equal(await read(dir, "app/app.js"), "old app");
+  assert.equal(await read(dir, "app/old.js"), "gone next version");
+  assert.equal(JSON.parse(await read(dir, "manifest.json")).version, "1.0.108");
+  assert.ok(!dir.children.has(".crunchilist-update"));
+});
+
+test("a file blocked while installing puts the old files back and keeps the old version", async () => {
+  const { dir, run } = await setUp({ block: (path) => path === "lib/a.js" });
+  await assert.rejects(run(), { code: "blocked" });
+  assert.equal(await read(dir, "app/app.js"), "old app");
+  assert.equal(await read(dir, "lib/a.js"), null);
+  assert.equal(JSON.parse(await read(dir, "manifest.json")).version, "1.0.108");
 });
 
 test("a folder that isn't this copy of Crunchilist is refused", async () => {
