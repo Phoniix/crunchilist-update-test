@@ -70,15 +70,20 @@ function GitHubFailure($record) {
 }
 
 function LatestRef {
+  $headers = @{ "User-Agent" = "Crunchilist-update" }
   try {
-    $release = Invoke-RestMethod -Uri "$ApiBase/repos/$Repo/releases/latest" -UseBasicParsing -Headers @{ "User-Agent" = "Crunchilist-update" }
+    $release = Invoke-RestMethod -Uri "$ApiBase/repos/$Repo/releases/latest" -UseBasicParsing -Headers $headers
     if ($release.tag_name) { return [string]$release.tag_name }
   } catch {
     $status = 0
     try { $status = [int]$_.Exception.Response.StatusCode } catch { }
     if ($status -ne 404) { throw (GitHubFailure $_) }
   }
-  "master"
+  # GitHub caches the master zip for minutes after a push; a commit's zip never changes.
+  try { $commit = Invoke-RestMethod -Uri "$ApiBase/repos/$Repo/commits/master" -UseBasicParsing -Headers $headers }
+  catch { throw (GitHubFailure $_) }
+  if ([string]$commit.sha -notmatch '^[0-9a-f]{40}$') { throw "GitHub's answer didn't make sense. Try again later. Nothing was changed." }
+  [string]$commit.sha
 }
 
 function Blocked([string]$file) {
@@ -114,7 +119,7 @@ try {
   } else {
     Write-Host "Checking GitHub for the newest version..."
     $ref = LatestRef
-    Write-Host "Downloading $ref..."
+    Write-Host "Downloading $(if ($ref.Length -eq 40) { "the newest version" } else { $ref })..."
     try {
       Invoke-WebRequest -Uri "$ZipBase/$Repo/zip/$ref" -OutFile $archive -UseBasicParsing -Headers @{ "User-Agent" = "Crunchilist-update" }
     } catch { throw (GitHubFailure $_) }

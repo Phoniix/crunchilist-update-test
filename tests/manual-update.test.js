@@ -63,10 +63,12 @@ function run(root, archive, ...args) {
 }
 
 // Plays api.github.com and codeload.github.com. release: a tag, or an HTTP status / "drop"; download: zip bytes, or a status / "drop" / "cut".
-async function fakeGitHub({ release = 404, download }) {
+const COMMIT = "c".repeat(40);
+async function fakeGitHub({ release = 404, download, commit = COMMIT }) {
   const hits = [];
   const server = http.createServer((request, response) => {
     hits.push(request.url);
+    if (request.url.includes("/commits/")) return commit === "drop" ? request.socket.destroy() : response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ sha: commit }));
     const answer = request.url.startsWith("/repos/") ? release : download;
     if (answer === "drop") return request.socket.destroy();
     if (typeof answer === "number") return response.writeHead(answer).end();
@@ -182,14 +184,14 @@ test("a damaged download changes nothing", windows, async () => {
   await cleanup(root, archive);
 });
 
-test("from GitHub: master when there's no release, the release tag when there is", windows, async () => {
+test("from GitHub: master's exact commit when there's no release, the release tag when there is", windows, async () => {
   const noRelease = await fakeGitHub({ download: sourceZip(NEXT) });
   const root = await folder(OLD);
   const first = await run(root, null, ...noRelease.args);
   await noRelease.close();
   assert.equal(first.code, 0, first.out);
   assert.equal(await version(root), "1.0.112");
-  assert.deepEqual(noRelease.hits, ["/repos/Phoniix/crunchilist/releases/latest", "/Phoniix/crunchilist/zip/master"]);
+  assert.deepEqual(noRelease.hits, ["/repos/Phoniix/crunchilist/releases/latest", "/repos/Phoniix/crunchilist/commits/master", `/Phoniix/crunchilist/zip/${COMMIT}`]);
 
   const tagged = await fakeGitHub({ release: "v1.0.113", download: sourceZip({ ...NEXT, "manifest.json": manifest("1.0.113") }) });
   const second = await run(root, null, ...tagged.args);
@@ -208,6 +210,8 @@ test("from GitHub: rate limits, a dropped connection and a cut-off download chan
     [{ download: "drop" }, /Couldn't reach GitHub|damaged/],
     [{ download: { cut: true, bytes: sourceZip(NEXT) } }, /Couldn't reach GitHub|damaged/],
     [{ download: 500 }, /GitHub answered 500/],
+    [{ commit: "drop", download: sourceZip(NEXT) }, /Couldn't reach GitHub/],
+    [{ commit: "not-a-sha", download: sourceZip(NEXT) }, /didn't make sense/],
   ];
   for (const [setup, message] of cases) {
     const github = await fakeGitHub(setup);
