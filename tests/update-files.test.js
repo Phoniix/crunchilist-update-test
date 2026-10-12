@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { gitBlobSha, isPackagePath, packageFiles, rawUrl, sameAsGitHub, staleFiles, withoutCarriageReturns } from "../lib/update-files.js";
 
+test("the manual update files ship with the extension", () => {
+  assert.equal(isPackagePath("update.cmd", {}), true);
+  assert.equal(isPackagePath("tools/update.ps1", {}), true);
+  assert.equal(isPackagePath("tools/../update.cmd", {}), false);
+  assert.equal(isPackagePath("other.cmd", {}), false);
+});
+
 const MANIFEST = { content_scripts: [{ js: ["content/page-hook.js", "content/crunchilist.js"], css: [] }] };
 
 test("git fingerprints match git hash-object", async () => {

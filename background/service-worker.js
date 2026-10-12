@@ -307,6 +307,7 @@ async function reopenAfterUpdate() {
   const { crReopenApp } = await chrome.storage.local.get("crReopenApp");
   if (!crReopenApp) return;
   await chrome.storage.local.remove("crReopenApp");
+  await chrome.storage.local.set({ crJustUpdated: chrome.runtime.getManifest().version });
   await openApp();
 }
 chrome.runtime.onStartup.addListener(() => {

@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CHECK_EVERY_MS, MASTER_ZIP, RELEASES_URL, cleanVersion, compareVersions, dueForCheck, fromManifest, fromRelease, updateStatus } from "../lib/update-check.js";
+import { CHECK_EVERY_MS, MASTER_ZIP, RELEASES_URL, cleanVersion, compareVersions, dueForCheck, fromManifest, fromRelease, reloadForDisk, updateStatus } from "../lib/update-check.js";
+
+test("a newer version put on disk by update.cmd restarts Crunchilist once", () => {
+  assert.equal(reloadForDisk("1.0.111", "1.0.112", undefined), true);
+  assert.equal(reloadForDisk("1.0.111", "1.0.112", "1.0.112"), false, "already tried this version");
+  assert.equal(reloadForDisk("1.0.112", "1.0.112", undefined), false);
+  assert.equal(reloadForDisk("1.0.112", "1.0.111", undefined), false);
+  assert.equal(reloadForDisk("1.0.111", "", undefined), false, "unreadable manifest");
+});
 
 test("versions compare part by part, with or without a v tag", () => {
   assert.equal(compareVersions("1.0.108", "1.0.107"), 1);

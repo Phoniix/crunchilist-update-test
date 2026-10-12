@@ -12,6 +12,7 @@ import { INSPIRED_SEARCHES, RECENT_LIMIT, cleanSearches, rememberSearch } from "
 import { CUSTOM_VARS, clamp, customVars, hexHsv, hsvHex } from "./prism-color.js";
 import { createTastePop } from "./prism-taste.js";
 import { canSelfUpdate, installUpdate } from "./updater.js";
+import { reloadForDisk } from "../lib/update-check.js";
 
 let SHOWS = [];
 let byId = new Map();
@@ -1119,11 +1120,24 @@ function pageSettings() {
       <div id="settings-embed"></div></div>
     <p class="set-foot"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a><span>Crunchilist ${esc(chrome.runtime.getManifest().version)}</span>${updateHtml()}</p>
     ${update?.available ? `<p class="set-foot set-update">${canSelfUpdate()
-      ? "Update now installs it into your Crunchilist folder and restarts Crunchilist. The first time, Chrome asks you to pick that folder: the one shown under Crunchilist on chrome://extensions. Your list and settings stay."
-      : "Download it, unzip it over your Crunchilist folder, then press reload on Crunchilist in chrome://extensions. Your list and settings stay."}</p>` : ""}
+      ? `Update now installs it into your Crunchilist folder and restarts Crunchilist. The first time, Chrome asks you to pick that folder: the one shown under Crunchilist on chrome://extensions.${manualUpdate ? " If it can't finish, double-click update.cmd in that folder." : ""} Your list and settings stay.`
+      : manualUpdate
+        ? "Double-click update.cmd in your Crunchilist folder (the one shown under Crunchilist on chrome://extensions), then come back here. Your list and settings stay."
+        : "Download it, unzip it over your Crunchilist folder, then press reload on Crunchilist in chrome://extensions. Your list and settings stay."}</p>` : ""}
   </div>`;
 }
 let updating = false;
+// update.cmd only exists on Windows, and only in copies from 1.0.112 on.
+const manualUpdate = /Windows/.test(navigator.userAgent);
+// update.cmd changes the folder while this page still runs the old code: restart onto the new version.
+async function finishManualUpdate() {
+  const onDisk = await fetch(chrome.runtime.getURL("manifest.json"), { cache: "no-store" }).then((response) => response.json()).then((json) => json.version).catch(() => "");
+  const { crDiskReload } = await chrome.storage.local.get("crDiskReload");
+  if (updating || !reloadForDisk(chrome.runtime.getManifest().version, onDisk, crDiskReload)) return;
+  await chrome.storage.local.set({ crDiskReload: onDisk, crReopenApp: true });
+  toast(`Version ${onDisk} is installed. Restarting Crunchilist…`);
+  setTimeout(() => chrome.runtime.reload(), 900);
+}
 function updateHtml() {
   if (!update || update.managed) return "";
   if (update.available) {
@@ -1159,7 +1173,7 @@ async function runUpdate() {
     await chrome.storage.local.set({ crReopenApp: true });
     setTimeout(() => chrome.runtime.reload(), 900);
   } catch (error) {
-    toast(error?.message || "The update didn't finish. Try again, or use Download instead");
+    toast(error?.message || `The update didn't finish. Try again, ${manualUpdate ? "run update.cmd in your Crunchilist folder, " : ""}or use Download instead`);
     updating = false;
     paint();
   }
@@ -2091,7 +2105,10 @@ function bind() {
     if (cardEl && !cardEl.contains(event.relatedTarget)) { clearTimeout(hoverTimer); if (cardEl === playing) stopPreview(); }
   });
   window.addEventListener("message", onPlayerMessage);
-  document.addEventListener("visibilitychange", () => hush(document.hidden));
+  document.addEventListener("visibilitychange", () => {
+    hush(document.hidden);
+    if (!document.hidden) finishManualUpdate().catch(() => {});
+  });
   addEventListener("blur", () => setTimeout(() => { if (document.activeElement?.tagName !== "IFRAME") hush(true); }));
   addEventListener("focus", () => { if (!document.hidden) hush(false); });
   for (const type of ["pointerdown", "keydown"]) {
@@ -2146,5 +2163,11 @@ export function startPrism(source, design) {
   reload({ first: true }).finally(() => setTimeout(startTips, 800));
   send("getShortcut").then((reply) => { if (reply?.ok) { shortcut = reply.shortcut || ""; if (document.body.dataset.page === "settings") rerender(true); } });
   setTimeout(() => checkUpdate().catch(() => {}), 3000);
+  finishManualUpdate().catch(() => {});
+  chrome.storage.local.get("crJustUpdated").then(({ crJustUpdated }) => {
+    if (!crJustUpdated) return;
+    chrome.storage.local.remove("crJustUpdated");
+    setTimeout(() => toast(`Crunchilist updated to version ${crJustUpdated}`), 600);
+  }).catch(() => {});
   source.watch((kind, next) => (kind === "view" ? applyView(next) : reload().finally(() => setTimeout(startTips, 800))));
 }

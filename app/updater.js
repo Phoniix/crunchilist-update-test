@@ -30,9 +30,11 @@ function idb(mode, run) {
     };
   });
 }
-const savedFolder = () => idb("readonly", (store) => store.get("folder")).catch(() => null);
-const saveFolder = (handle) => idb("readwrite", (store) => store.put(handle, "folder")).catch(() => {});
-const forgetFolder = () => idb("readwrite", (store) => store.delete("folder")).catch(() => {});
+const savedFolders = {
+  get: () => idb("readonly", (store) => store.get("folder")).catch(() => null),
+  set: (handle) => idb("readwrite", (store) => store.put(handle, "folder")).catch(() => {}),
+  forget: () => idb("readwrite", (store) => store.delete("folder")).catch(() => {}),
+};
 
 async function readText(dir, name) {
   try {
@@ -60,8 +62,8 @@ async function checkFolder(dir) {
 }
 
 // Must run straight from the click: Chrome only shows the folder prompt during a user action.
-async function chooseFolder() {
-  const saved = await savedFolder();
+async function chooseFolder(folders) {
+  const saved = await folders.get();
   if (saved) {
     try {
       if ((await saved.requestPermission({ mode: "readwrite" })) === "granted") {
@@ -71,7 +73,7 @@ async function chooseFolder() {
     } catch (error) {
       if (error instanceof UpdateError && error.code === "git") throw error;
     }
-    await forgetFolder();
+    await folders.forget();
   }
   let picked;
   try {
@@ -80,19 +82,30 @@ async function chooseFolder() {
     throw new UpdateError(error?.name === "AbortError" ? "Update canceled." : "Chrome didn't allow access to that folder.", "canceled");
   }
   await checkFolder(picked);
-  await saveFolder(picked);
+  await folders.set(picked);
   return picked;
 }
 
+async function reach(url, options) {
+  let response;
+  try {
+    response = await fetch(url, { cache: "no-store", ...options });
+  } catch {
+    throw new UpdateError("Couldn't reach GitHub. Check your connection and try again. Nothing was changed.", "network");
+  }
+  if (response.status === 403 || response.status === 429) throw new UpdateError("GitHub is limiting requests from your connection right now. Try again in an hour. Nothing was changed.", "network");
+  return response;
+}
+
 async function getJson(url) {
-  const response = await fetch(url, { headers: { accept: "application/vnd.github+json" }, cache: "no-store" });
+  const response = await reach(url, { headers: { accept: "application/vnd.github+json" } });
   if (!response.ok) throw new UpdateError(`GitHub answered ${response.status}. Try again later.`, "network");
   return response.json();
 }
 
 async function download(ref, file) {
-  const response = await fetch(rawUrl(REPO, ref, file.path), { cache: "no-store" });
-  if (!response.ok) throw new UpdateError(`Couldn't download ${file.path}.`, "network");
+  const response = await reach(rawUrl(REPO, ref, file.path));
+  if (!response.ok) throw new UpdateError(`Couldn't download ${file.path}. Try again later. Nothing was changed.`, "network");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if ((await gitBlobSha(bytes)) !== file.sha) throw new UpdateError(`${file.path} didn't match GitHub's copy, so nothing was changed.`, "integrity");
   return bytes;
@@ -160,7 +173,14 @@ const STAGING = ".crunchilist-update";
 const SETTLE_MS = 1500;
 
 const sameBytes = (a, b) => Boolean(a && b) && a.length === b.length && a.every((byte, index) => byte === b[index]);
-const blocked = (file) => new UpdateError(`Your antivirus blocked ${file} while it was being written, so nothing was changed. Use Download instead, or allow the Crunchilist folder in your antivirus.`, "blocked");
+const blocked = (file) => new UpdateError(`Your antivirus blocked ${file} while it was being written, so nothing was changed. ${/Windows/.test(globalThis.navigator?.userAgent || "") ? "Double-click update.cmd in your Crunchilist folder, use" : "Use"} Download instead, or allow the Crunchilist folder in your antivirus.`, "blocked");
+// Chrome reports an antivirus block as AbortError or SecurityError; anything else is a plain write failure.
+function writeFailure(file, error) {
+  if (error instanceof UpdateError) return error;
+  if (error?.name === "QuotaExceededError") return new UpdateError(`Your disk is full, so ${file} couldn't be written. Nothing was changed. Free up some space and try again.`, "failed");
+  if (!error || error.name === "AbortError" || error.name === "SecurityError") return blocked(file);
+  return new UpdateError(`Couldn't write ${file} (${error.message || error.name}). Nothing was changed.`, "failed");
+}
 
 async function stageAndCheck(dir, writes, settleMs) {
   await dir.removeEntry(STAGING, { recursive: true }).catch(() => {});
@@ -169,8 +189,8 @@ async function stageAndCheck(dir, writes, settleMs) {
     for (const [file, bytes] of writes) {
       try {
         await writeFile(stage, file, bytes);
-      } catch {
-        throw blocked(file);
+      } catch (error) {
+        throw writeFailure(file, error);
       }
     }
     await new Promise((resolve) => setTimeout(resolve, settleMs));
@@ -181,8 +201,18 @@ async function stageAndCheck(dir, writes, settleMs) {
 }
 
 // latest: { version, ref } from the update check. onStep(text) reports progress.
-export async function installUpdate(latest, onStep = () => {}, { settleMs = SETTLE_MS } = {}) {
-  const dir = await chooseFolder();
+// folders: where the chosen folder is remembered (IndexedDB unless a test swaps it).
+// locks: one update at a time across every open Crunchilist tab.
+export async function installUpdate(latest, onStep = () => {}, { locks = globalThis.navigator?.locks, ...options } = {}) {
+  if (!locks) return install(latest, onStep, options);
+  return locks.request("crunchilist-update", { ifAvailable: true }, (lock) => {
+    if (!lock) throw new UpdateError("An update is already running in another Crunchilist tab.", "busy");
+    return install(latest, onStep, options);
+  });
+}
+
+async function install(latest, onStep, { settleMs = SETTLE_MS, folders = savedFolders } = {}) {
+  const dir = await chooseFolder(folders);
   onStep("Checking the new version…");
   const { sha } = await getJson(`${API}/commits/${encodeURIComponent(latest.ref || "master")}`);
   const { tree, truncated } = await getJson(`${API}/git/trees/${sha}?recursive=1`);
@@ -228,7 +258,7 @@ export async function installUpdate(latest, onStep = () => {}, { settleMs = SETT
       const before = old.get(file);
       await (before ? writeFile(dir, file, before) : removeFile(dir, file)).catch(() => {});
     }
-    throw error instanceof UpdateError ? error : blocked(written.at(-1));
+    throw writeFailure(written.at(-1), error);
   }
   for (const file of staleFiles(await installedFiles(dir, manifest), files, manifest)) await removeFile(dir, file).catch(() => {});
   // Last, so a copy interrupted mid-install still reports its old version and the next press redoes it.
