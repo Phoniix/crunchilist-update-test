@@ -1,0 +1,16 @@
+{
+  "name": "crunchyroll-corner-assistant",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "icons": "node scripts/gen-icons.js",
+    "eval": "node scripts/eval.mjs",
+    "scenarios": "node scripts/scenarios.mjs",
+    "ai-bench": "node scripts/ai-bench.mjs",
+    "anilist-dump": "node scripts/anilist-dump.mjs",
+    "package": "node scripts/package.mjs",
+    "lab": "node lab/serve.mjs",
+    "bundle": "npx --yes esbuild content/main.js --bundle --format=iife --target=chrome114 --outfile=content/crunchilist.js && npx --yes esbuild content/frame.js --bundle --format=iife --target=chrome114 --outfile=content/crunchilist-frame.js"
+  }
+}

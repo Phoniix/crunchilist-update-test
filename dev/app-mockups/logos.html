@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crunchilist by Phoniix · Logo concepts</title>
+<style>
+  :root { --font: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d0b0a; color: #f6eee8; font: 15px/1.5 var(--font); }
+  header { padding: 48px 56px 8px; }
+  header h1 { margin: 0; font-size: 34px; letter-spacing: -.03em; }
+  header p { margin: 6px 0 0; color: #a99a90; max-width: 760px; }
+  .source { display: flex; align-items: center; gap: 14px; margin-top: 18px; color: #a99a90; font-size: 13px; }
+  .source span { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 12px; background: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 22px; padding: 28px 56px 60px; }
+  .group { grid-column: 1 / -1; margin: 14px 0 -6px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #a99a90; }
+  .concept { border-radius: 22px; background: #16120f; border: 1px solid #2a221d; overflow: hidden; }
+  .concept-head { display: flex; align-items: baseline; gap: 12px; padding: 20px 24px 4px; }
+  .concept-head em { font-style: normal; font-weight: 800; color: #f47521; font-size: 13px; letter-spacing: .1em; }
+  .concept-head h2 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
+  .concept > p { margin: 0; padding: 0 24px 16px; color: #a99a90; font-size: 14px; }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; }
+  .panel { padding: 26px 22px 22px; display: grid; justify-items: center; gap: 20px; }
+  .panel.dark { background: #0f0c0a; }
+  .panel.light { background: #f7f2ee; color: #1c1410; }
+  .hero-icon { width: 180px; height: 180px; }
+  .sizes { display: flex; align-items: flex-end; gap: 16px; }
+  .sizes svg { display: block; }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .lockup svg.icon { width: 52px; height: 52px; flex: none; }
+  .lockup b { display: block; font-size: 27px; font-weight: 800; letter-spacing: -.035em; line-height: 1; }
+  .lockup small { display: block; margin-top: 5px; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; opacity: .7; }</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-ember" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8f3f"/><stop offset="1" stop-color="#ef5418"/></linearGradient>
+    <linearGradient id="g-flame" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f05a1a"/><stop offset=".55" stop-color="#f47521"/><stop offset="1" stop-color="#ffc54d"/></linearGradient>
+    <symbol id="phx" viewBox="0 0 2000 2000"><path fill-rule="evenodd" d="M68.98,29.53l1862.04,315.6L952.66,692.29V1970.47L116.32,234.67l867.9,110.46H305.68L873.76,1591.75V613.39l710.1-268.26Z"/></symbol>
+    <symbol id="phx-solid" viewBox="0 0 2000 2000"><polygon points="68.98,29.53 1931.02,345.13 952.66,692.29 952.66,1970.47 116.32,234.67"/></symbol>
+  </defs>
+</svg>
+
+<header>
+  <h1>Crunchilist <span style="color:#f47521">by Phoniix</span> · logo concepts</h1>
+  <p>Five directions mixing the Phoniix mark with Crunchyroll's language: the signature orange and round, crescent-like forms. Each is shown large, at real toolbar sizes (16, 32, 48 px), and as a full lockup on dark and light backgrounds.</p>
+  <div class="source"><span><svg width="40" height="40"><use href="#phx"/></svg></span>Your original mark, unchanged, copied to <code>icons/phoniix-logo.svg</code></div>
+</header>
+<main class="grid" id="grid"></main>
+
+<script>
+  // Each concept is one 512×512 icon. Line marks get a matching stroke so they survive small sizes.
+  const concepts = [
+    {
+      name: "Ember Disc",
+      why: "The simplest blend: Crunchyroll's orange disc carrying the Phoniix mark in white, which reads as a play arrow. Closest to today's icon, so the upgrade feels familiar.",
+      svg: () => `
+        <circle cx="256" cy="256" r="240" fill="url(#g-ember)"/>
+        <use href="#phx" x="128" y="118" width="270" height="270" fill="#fff" stroke="#fff" stroke-width="44" stroke-linejoin="miter"/>`,
+    },
+    {
+      name: "Crescent Flight",
+      why: "A crescent ring in the spirit of Crunchyroll's round mark, with the solid Phoniix arrow flying out through its thin side. No background, so it sits on any toolbar.",
+      svg: () => `
+        <path fill="url(#g-ember)" fill-rule="evenodd" d="M26,256a230,230 0 1,0 460,0a230,230 0 1,0 -460,0Z M134,256a172,172 0 1,0 344,0a172,172 0 1,0 -344,0Z"/>
+        <use href="#phx-solid" x="198" y="106" width="300" height="300" fill="url(#g-flame)"/>`,
+    },
+    {
+      name: "Play List",
+      why: "Says what the product does: the Phoniix mark as a play button with a short list beside it. An orange squircle keeps the Crunchyroll warmth; strongest at 16 px.",
+      svg: () => `
+        <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#g-ember)"/>
+        <use href="#phx-solid" x="66" y="68" width="330" height="330" fill="#fff"/>
+        <rect x="270" y="248" width="164" height="32" rx="16" fill="#fff" opacity=".95"/>
+        <rect x="270" y="308" width="132" height="32" rx="16" fill="#fff" opacity=".8"/>
+        <rect x="270" y="368" width="100" height="32" rx="16" fill="#fff" opacity=".65"/>`,
+    },
+    {
+      name: "Phoenix Ring",
+      why: "Leans into the Phoniix name: a flame-gradient mark aimed through the gap of an open ring, like a phoenix breaking out. Dark badge, premium feel.",
+      svg: () => `
+        <circle cx="256" cy="256" r="240" fill="#170f0b"/>
+        <circle cx="256" cy="256" r="194" fill="none" stroke="url(#g-flame)" stroke-width="34" stroke-linecap="round" stroke-dasharray="1050 169" transform="rotate(22 256 256)"/>
+        <use href="#phx" x="122" y="118" width="280" height="280" fill="url(#g-flame)" stroke="url(#g-flame)" stroke-width="46"/>`,
+    },
+    {
+      name: "C + P Monogram",
+      why: "A bold orange C for Crunchilist holding the white Phoniix P, its arrow pointing out of the C's mouth. Reads as a monogram and a play button at once.",
+      svg: () => `
+        <rect x="16" y="16" width="480" height="480" rx="116" fill="#17110e"/>
+        <circle cx="256" cy="256" r="168" fill="none" stroke="url(#g-ember)" stroke-width="72" stroke-dasharray="826 230" transform="rotate(38 256 256)"/>
+        <use href="#phx" x="168" y="160" width="204" height="204" fill="#fff" stroke="#fff" stroke-width="64"/>`,
+    },
+  ];
+
+  // Crescent Flight with the outline mark. The crescent is a moon: an outer circle minus an inner circle that
+  // pokes just past its right edge, so the thin side tapers to two sharp horns with an opening between them.
+  function moon(r, cx, R = 230, c = 256) {
+    const d = cx - c;
+    const a = (R * R - r * r + d * d) / (2 * d);
+    const h = Math.sqrt(R * R - a * a);
+    const px = (c + a).toFixed(2), top = (256 - h).toFixed(2), bottom = (256 + h).toFixed(2);
+    return `M${px},${top} A${R},${R} 0 1 0 ${px},${bottom} A${r},${r} 0 1 1 ${px},${top} Z`;
+  }
+  // `line` thickens the mark's own strokes (in its 2000-unit space). Where the mark meets the moon, a transparent
+  // cut keeps the two oranges from merging.
+  const flight = ({ id, line = 0, x = 204, y = 124, size = 296, glow = 0, r = 180, cx = 310, gap = 140 }) => () => `
+    <mask id="ko-${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/>
+      <use href="#phx" x="${x}" y="${y}" width="${size}" height="${size}" fill="#000" stroke="#000" stroke-width="${line + gap}" stroke-linejoin="round"/>
+    </mask>
+    <path fill="url(#g-ember)" d="${moon(r, cx)}" mask="url(#ko-${id})"/>
+    ${glow ? `<use href="#phx-solid" x="${x}" y="${y}" width="${size}" height="${size}" fill="url(#g-flame)" opacity="${glow}"/>` : ""}
+    <use href="#phx" x="${x}" y="${y}" width="${size}" height="${size}" fill="url(#g-flame)" ${line ? `stroke="url(#g-flame)" stroke-width="${line}" stroke-linejoin="round"` : ""}/>`;
+  const variants = [
+    { name: "Fine Line", why: "Your mark exactly as drawn, untouched, flying out between the moon's tapered points. The most faithful and elegant, but thin at toolbar size.", svg: flight({ id: "a" }) },
+    { name: "Bold Line", why: "The same outline at a heavier weight, with the sharpest corners slightly softened, so it stays readable down to 16 px.", svg: flight({ id: "b", line: 70 }) },
+    { name: "Line + Glow", why: "Bold outline with a faint wash of colour inside. Still clearly a line drawing, with a bit more presence and warmth.", svg: flight({ id: "c", line: 70, glow: 0.22 }) },
+    { name: "Wide Moon", why: "A slimmer moon with a wider opening and longer tapered points, giving the mark more room to fly out. More dramatic, more moon-like.", svg: flight({ id: "d", line: 60, r: 190, cx: 330, x: 210, y: 116, size: 306 }) },
+  ];
+
+  const icon = (c, size, cls = "") => `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 512 512">${c.svg()}</svg>`;
+  const lockup = (c) => `<div class="lockup">${icon(c, 52, "icon")}<div><b>Crunchilist</b><small>by Phoniix</small></div></div>`;
+  const panel = (c, theme) => `<div class="panel ${theme}">${icon(c, 180, "hero-icon")}<div class="sizes">${icon(c, 16)}${icon(c, 32)}${icon(c, 48)}</div>${lockup(c)}</div>`;
+
+  const section = (list, prefix) => list.map((c, i) => `
+    <section class="concept">
+      <div class="concept-head"><em>${prefix}${i + 1}</em><h2>${c.name}</h2></div>
+      <p>${c.why}</p>
+      <div class="panels">${panel(c, "dark")}${panel(c, "light")}</div>
+    </section>`).join("");
+  document.getElementById("grid").innerHTML = `<h3 class="group">Crescent Flight · outline versions</h3>${section(variants, "C")}
+    <h3 class="group">Earlier concepts</h3>${section(concepts, "0")}`;
+</script>
+</body>
+</html>

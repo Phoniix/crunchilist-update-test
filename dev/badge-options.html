@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Crunchilist badge options</title>
+<style>
+  :root { --cr: #f47521; --bg: #000; --panel: #141519; --text: #fff; --muted: #a0a0a0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 "Lato", "Segoe UI", system-ui, sans-serif; }
+  header.page { padding: 28px 40px 8px; }
+  header.page h1 { margin: 0 0 6px; font-size: 22px; }
+  header.page p { margin: 0; color: var(--muted); max-width: 760px; }
+  .controls { display: flex; gap: 18px; align-items: center; margin-top: 14px; color: var(--muted); }
+  .controls label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+  section.option { margin: 22px 40px; padding: 20px 24px 24px; background: var(--panel); border-radius: 14px; }
+  .option h2 { margin: 0; font-size: 17px; display: flex; align-items: baseline; gap: 10px; }
+  .option h2 .tag { font-size: 12px; color: var(--cr); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .option p.why { margin: 4px 0 16px; color: var(--muted); max-width: 820px; }
+  .row { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 4px; }
+
+  .card { width: 150px; flex: none; }
+  .poster { position: relative; aspect-ratio: 2 / 3; border-radius: 4px; overflow: hidden; background: #222; }
+  .poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .title { margin-top: 8px; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { margin-top: 2px; color: var(--muted); font-size: 12px; }
+  .meta b { font-weight: 700; }
+
+  /* Option A: current pill above the poster */
+  .a-pill { display: inline-block; margin: 0 6px 4px 0; padding: 2px 8px; border-radius: 999px; font: 700 12px/1.35 "Trebuchet MS", sans-serif; }
+  .a-finished { background: #f47521; color: #1a0d05; }
+  .a-in_progress { background: #f5c16c; color: #1a0d05; }
+  .a-dropped { background: #5c3030; color: #ffd5d5; }
+  .a-plan { background: #24384a; color: #d7e8f8; }
+  .a-unwatched { background: transparent; color: #d0d0d0; border: 1px solid #8a8a8a; }
+
+  /* Option B: corner flag on the poster */
+  .b-flag { position: absolute; top: 0; left: 0; padding: 4px 9px 4px 8px; border-radius: 0 0 8px 0; font: 800 10px/1 "Segoe UI", sans-serif; letter-spacing: .08em; text-transform: uppercase; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .b-finished { background: var(--cr); color: #1a0d05; }
+  .b-in_progress { background: #ffc35a; color: #1a0d05; }
+  .b-dropped { background: #c0392b; color: #fff; }
+  .b-plan { background: #2d7fd3; color: #fff; }
+  .b-unwatched { background: rgba(20,21,25,.85); color: #cfcfcf; }
+
+  /* Option C: frosted glass chip */
+  .c-chip { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px 5px 7px; border-radius: 999px; background: rgba(10,10,12,.55); backdrop-filter: blur(8px) saturate(1.4); -webkit-backdrop-filter: blur(8px) saturate(1.4); border: 1px solid rgba(255,255,255,.14); font: 700 11px/1 "Segoe UI", sans-serif; color: #fff; }
+  .c-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+  .c-finished .c-dot { background: var(--cr); color: var(--cr); }
+  .c-in_progress .c-dot { background: #ffc35a; color: #ffc35a; }
+  .c-dropped .c-dot { background: #ff5a4f; color: #ff5a4f; }
+  .c-plan .c-dot { background: #58a6ff; color: #58a6ff; }
+  .c-unwatched .c-dot { background: #9a9a9a; color: transparent; }
+
+  /* Glass chip variations */
+  .t-finished { --tone: #f47521; --tone-rgb: 244,117,33; }
+  .t-in_progress { --tone: #ffc35a; --tone-rgb: 255,195,90; }
+  .t-plan { --tone: #58a6ff; --tone-rgb: 88,166,255; }
+  .t-dropped { --tone: #ff5a4f; --tone-rgb: 255,90,79; }
+  .t-unwatched { --tone: #a8a8a8; --tone-rgb: 168,168,168; }
+  .glass { backdrop-filter: blur(10px) saturate(1.5); -webkit-backdrop-filter: blur(10px) saturate(1.5); font: 700 11px/1 "Segoe UI", sans-serif; color: #fff; white-space: nowrap; }
+
+  .c2 { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px;
+    background: rgba(var(--tone-rgb), .28); border: 1px solid rgba(var(--tone-rgb), .6); box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18); text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+  .c3 { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px;
+    background: rgba(12,12,14,.5); border: 1px solid rgba(255,255,255,.14); }
+  .c3 .ico { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--tone); color: #141414; }
+  .c3 .ico svg { width: 11px; height: 11px; }
+  .c3.t-unwatched .ico { background: transparent; color: #cfcfcf; border: 1.5px solid #8a8a8a; }
+
+  .c4 { position: absolute; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px 6px 8px; border-radius: 10px;
+    background: rgba(12,12,14,.5); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  .c4 .c-dot { background: var(--tone); color: var(--tone); }
+  .c4 .sub { color: rgba(255,255,255,.65); font-weight: 600; }
+
+  .c5 { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 6px; padding: 9px 9px 11px;
+    background: linear-gradient(to top, rgba(10,10,12,.72), rgba(10,10,12,.35)); border-top: 1px solid rgba(255,255,255,.12); }
+  .c5 .c-dot { background: var(--tone); color: var(--tone); }
+  .c5 .sub { margin-left: auto; color: rgba(255,255,255,.7); font-weight: 600; }
+  .c5 .line { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--tone); }
+
+  .c6 { position: absolute; left: 8px; bottom: 8px; height: 24px; min-width: 24px; display: inline-flex; align-items: center; gap: 0; padding: 0 8px; border-radius: 999px;
+    background: rgba(12,12,14,.5); border: 1px solid rgba(255,255,255,.16); transition: gap .18s ease, padding .18s ease; }
+  .c6 .c-dot { background: var(--tone); color: var(--tone); flex: none; }
+  .c6 .word { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .2s ease; }
+  .card:hover .c6, .c6[aria-expanded="true"] { gap: 6px; padding: 0 10px 0 8px; }
+  .card:hover .c6 .word, .c6[aria-expanded="true"] .word { max-width: 90px; }
+
+  .c7 { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); border: 1px solid rgba(var(--tone-rgb), .85);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 0 14px rgba(var(--tone-rgb), .45), inset 0 0 10px rgba(var(--tone-rgb), .18); color: #fff; }
+  .c7 .word { color: var(--tone); filter: brightness(1.25); }
+
+  .f { position: absolute; left: 8px; bottom: 8px; height: 24px; min-width: 24px; display: inline-flex; align-items: center; gap: 0; padding: 0 7px; border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); border: 1px solid rgba(var(--tone-rgb), .85);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 0 12px rgba(var(--tone-rgb), .45), inset 0 0 8px rgba(var(--tone-rgb), .18); transition: gap .18s ease, padding .18s ease; }
+  .f .c-dot { background: var(--tone); color: var(--tone); flex: none; }
+  .f .word { max-width: 0; overflow: hidden; white-space: nowrap; color: var(--tone); filter: brightness(1.25); transition: max-width .22s ease; }
+  .f .sub { color: rgba(255,255,255,.7); font-weight: 600; }
+  .card:hover .f, .f[aria-expanded="true"] { gap: 6px; padding: 0 10px 0 8px; }
+  .card:hover .f .word, .f[aria-expanded="true"] .word { max-width: 110px; }
+  @media (prefers-reduced-motion: reduce) { .f, .f .word { transition: none; } }
+
+  /* Option D: progress edge along the bottom of the poster */
+  .d-track { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.18); }
+  .d-fill { height: 100%; }
+  .d-finished .d-fill { background: var(--cr); }
+  .d-in_progress .d-fill { background: #ffc35a; }
+  .d-dropped .d-fill { background: #ff5a4f; }
+  .d-plan .d-fill { background: #58a6ff; }
+  .d-count { position: absolute; right: 6px; bottom: 11px; padding: 3px 6px; border-radius: 4px; background: rgba(0,0,0,.72); font: 700 11px/1 "Segoe UI", sans-serif; }
+  .d-meta-finished { color: var(--cr); }
+  .d-meta-in_progress { color: #ffc35a; }
+  .d-meta-dropped { color: #ff7b72; }
+  .d-meta-plan { color: #79b8ff; }
+
+  /* Option E: icon seal that opens on hover */
+  .e-seal { position: absolute; top: 8px; right: 8px; height: 28px; min-width: 28px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 0; padding: 0 6px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.45); font: 800 11px/1 "Segoe UI", sans-serif; overflow: hidden; transition: gap .18s ease, padding .18s ease; }
+  .e-seal span { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .2s ease; }
+  .e-seal svg { width: 16px; height: 16px; flex: none; }
+  .card:hover .e-seal { gap: 6px; padding: 0 9px 0 10px; }
+  .card:hover .e-seal span { max-width: 90px; }
+  .e-finished { background: var(--cr); color: #1a0d05; }
+  .e-in_progress { background: #ffc35a; color: #1a0d05; }
+  .e-dropped { background: #3a1a1a; color: #ff8a80; border: 1px solid #ff5a4f; }
+  .e-plan { background: #10233a; color: #8cc4ff; border: 1px solid #2d7fd3; }
+  .e-unwatched { background: rgba(20,21,25,.8); color: #cfcfcf; }
+
+  .badge[data-pick] { cursor: pointer; pointer-events: auto; }
+  .badge[data-pick]:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .caret { width: 10px; height: 10px; margin-left: 3px; vertical-align: -1px; opacity: 0; transition: opacity .15s ease; }
+  .card:hover .caret, .badge[aria-expanded="true"] .caret { opacity: .85; }
+  .a-pill:hover, .b-flag:hover, .c-chip:hover { filter: brightness(1.12); }
+  .d-status { cursor: pointer; border-radius: 4px; padding: 1px 3px; margin-left: -3px; }
+  .d-status:hover { background: rgba(255,255,255,.08); }
+  .d-unwatched { color: var(--muted); font-weight: 600; }
+
+  body.no-unwatched [data-mark="unwatched"] .badge { opacity: 0; transition: opacity .15s ease; }
+  body.no-unwatched [data-mark="unwatched"]:hover .badge, body.no-unwatched [data-mark="unwatched"] .badge[aria-expanded="true"] { opacity: 1; }
+
+  .menu { position: absolute; z-index: 10; min-width: 170px; padding: 6px; border-radius: 12px; background: rgba(28,29,34,.96); border: 1px solid rgba(255,255,255,.1); box-shadow: 0 12px 32px rgba(0,0,0,.55); backdrop-filter: blur(10px); }
+  .menu[hidden] { display: none; }
+  .menu button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: #eee; font: 600 13px/1 "Segoe UI", sans-serif; text-align: left; cursor: pointer; }
+  .menu button:hover, .menu button:focus-visible { background: rgba(255,255,255,.08); outline: none; }
+  .menu .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .menu .check { margin-left: auto; color: var(--cr); font-weight: 800; }
+  .menu .sep { height: 1px; margin: 5px 4px; background: rgba(255,255,255,.08); }
+  .menu .hint { padding: 6px 10px 4px; color: var(--muted); font-size: 11px; }
+  footer.page { margin: 10px 40px 40px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="page">
+  <h1>Status badge options</h1>
+  <p>Each row shows the same five shows with the five statuses: Watched, In progress, Plan, Dropped and Unwatched. Click any badge to change that show's status from a menu; the change shows in every row so you can compare. Hover a card to see hover effects. Tell me the letter you like, or mix parts (for example, B's colors with C's shape).</p>
+  <div class="controls">
+    <label><input type="checkbox" id="unwatched" checked> Show a badge on unwatched shows</label>
+  </div>
+</header>
+
+<section class="option" data-style="f">
+  <h2><span class="tag">Final</span> Glow dot (glow edge + dot that opens)</h2>
+  <p class="why">A glowing dot inside a glass bubble with a colored glowing rim. Hover the card and it opens to the colored label, plus your episode on in-progress and dropped shows. Click it for the status menu.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="a">
+  <h2><span class="tag">A</span> Current pill</h2>
+  <p class="why">What you have now, for comparison. A rounded pill sits above the poster and pushes it down a little.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="b">
+  <h2><span class="tag">B</span> Corner flag</h2>
+  <p class="why">A small solid flag tucked into the poster's top-left corner. Doesn't move Crunchyroll's layout, bold enough to scan a row quickly.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c">
+  <h2><span class="tag">C1</span> Glass chip</h2>
+  <p class="why">A frosted, see-through chip with a glowing color dot at the poster's bottom-left. Matches the glass look of the Crunchilist panel and stays subtle.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c2">
+  <h2><span class="tag">C2</span> Tinted glass</h2>
+  <p class="why">The whole chip is tinted with the status color, with a matching edge. Easier to tell statuses apart at a glance than the dot.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c3">
+  <h2><span class="tag">C3</span> Glass with icon</h2>
+  <p class="why">The dot becomes a small colored circle with the status icon (check, play, bookmark, X), so it reads even without color.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c4">
+  <h2><span class="tag">C4</span> Top corner, with episode</h2>
+  <p class="why">A squarer chip in the top-left, away from the art's bottom where titles often sit. In-progress and dropped shows add the episode you're on.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c5">
+  <h2><span class="tag">C5</span> Glass footer</h2>
+  <p class="why">A frosted strip across the bottom of the poster with the status on the left, episodes on the right, and a thin progress line underneath.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c6">
+  <h2><span class="tag">C6</span> Glowing dot that opens</h2>
+  <p class="why">Just a glowing dot in a small glass bubble. It opens into the full label when you hover the card. The quietest glass version.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="c7">
+  <h2><span class="tag">C7</span> Glow edge</h2>
+  <p class="why">Clear glass with a colored glowing rim and colored text. The flashiest version, a bit like a game UI.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="d">
+  <h2><span class="tag">D</span> Progress edge</h2>
+  <p class="why">A thin bar along the bottom of the poster, like Netflix. It fills with your episode progress from AniList, and the status moves into the gray line under the title. Click the status word to change it.</p>
+  <div class="row"></div>
+</section>
+
+<section class="option" data-style="e">
+  <h2><span class="tag">E</span> Icon seal</h2>
+  <p class="why">A small round icon in the top-right corner: a check, play, bookmark or X. It slides open to show the word when you hover the card. The most minimal option.</p>
+  <div class="row"></div>
+</section>
+
+<footer class="page">Temporary preview page. Delete <code>dev/badge-options.html</code> once you've picked.</footer>
+<div class="menu" id="menu" role="menu" hidden></div>
+
+<script>
+  const cover = (path) => `https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/${path}`;
+  const SHOWS = [
+    { title: "Fullmetal Alchemist: Brotherhood", art: cover("bx5114-nSWCgQlmOMtj.jpg"), mark: "finished", progress: 64, episodes: 64 },
+    { title: "JUJUTSU KAISEN", art: cover("bx113415-LHBAeoZDIsnF.jpg"), mark: "in_progress", progress: 7, episodes: 24 },
+    { title: "Hunter x Hunter (2011)", art: cover("bx11061-y5gsT1hoHuHw.png"), mark: "plan", progress: 0, episodes: 148 },
+    { title: "Death Note", art: cover("bx1535-kUgkcrfOrkUM.jpg"), mark: "dropped", progress: 9, episodes: 37 },
+    { title: "Demon Slayer: Kimetsu no Yaiba", art: cover("bx101922-WBsBl0ClmgYL.jpg"), mark: "unwatched", progress: 0, episodes: 26 },
+  ];
+  const LABEL = { finished: "Watched", in_progress: "In progress", plan: "Plan", dropped: "Dropped", unwatched: "Unwatched" };
+  const ICON = {
+    finished: '<path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    in_progress: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
+    plan: '<path d="M7 4.5h10v15l-5-3.6-5 3.6z" fill="currentColor"/>',
+    dropped: '<path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
+    unwatched: '<circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="2.2"/>',
+  };
+
+  const DOT = { finished: "#f47521", in_progress: "#ffc35a", plan: "#58a6ff", dropped: "#ff5a4f", unwatched: "#8a8a8a" };
+  const ORDER = ["in_progress", "finished", "plan", "dropped"];
+  const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const pick = (index, label) => `data-pick="${index}" role="button" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-label="Status: ${label}. Change status"`;
+
+  function badge(style, show, index) {
+    const m = show.mark;
+    const attrs = pick(index, LABEL[m]);
+    if (style === "a") return `<span class="badge a-pill a-${m}" ${attrs}>${LABEL[m]}${CARET}</span>`;
+    if (style === "b") return `<span class="badge b-flag b-${m}" ${attrs}>${LABEL[m]}${CARET}</span>`;
+    if (style === "c") return `<span class="badge c-chip c-${m}" ${attrs}><span class="c-dot"></span>${LABEL[m]}${CARET}</span>`;
+    const eps = m === "in_progress" || m === "dropped" ? `Ep ${show.progress}/${show.episodes}` : m === "finished" ? `${show.episodes} eps` : "";
+    const icon = `<svg viewBox="0 0 24 24">${ICON[m]}</svg>`;
+    if (style === "c2") return `<span class="badge glass c2 t-${m}" ${attrs}>${LABEL[m]}${CARET}</span>`;
+    if (style === "c3") return `<span class="badge glass c3 t-${m}" ${attrs}><span class="ico">${icon}</span>${LABEL[m]}${CARET}</span>`;
+    if (style === "c4") return `<span class="badge glass c4 t-${m}" ${attrs}><span class="c-dot"></span>${LABEL[m]}${m === "in_progress" || m === "dropped" ? `<span class="sub">${show.progress}/${show.episodes}</span>` : ""}${CARET}</span>`;
+    if (style === "c5") {
+      const pct = m === "finished" ? 100 : m === "in_progress" || m === "dropped" ? Math.round(show.progress / show.episodes * 100) : 0;
+      return `<span class="badge glass c5 t-${m}" ${attrs}><span class="c-dot"></span>${LABEL[m]}${CARET}<span class="sub">${eps}</span><span class="line" style="width:${pct}%"></span></span>`;
+    }
+    if (style === "c6") return `<span class="badge glass c6 t-${m}" ${attrs}><span class="c-dot"></span><span class="word">${LABEL[m]}</span></span>`;
+    if (style === "f") return `<span class="badge glass f t-${m}" ${attrs}><span class="c-dot"></span><span class="word">${LABEL[m]}${m === "in_progress" || m === "dropped" ? ` <span class="sub">${show.progress}/${show.episodes}</span>` : ""}</span></span>`;
+    if (style === "c7") return `<span class="badge glass c7 t-${m}" ${attrs}><span class="word">${LABEL[m]}</span>${CARET}</span>`;
+    if (style === "e") return `<span class="badge e-seal e-${m}" ${attrs}><span>${LABEL[m]}</span><svg viewBox="0 0 24 24">${ICON[m]}</svg></span>`;
+    if (style === "d") {
+      if (m === "unwatched") return "";
+      const pct = m === "finished" ? 100 : m === "plan" ? 0 : Math.round(show.progress / show.episodes * 100);
+      const count = m === "in_progress" || m === "dropped" ? `<span class="d-count">${show.progress} / ${show.episodes}</span>` : "";
+      return `${count}<span class="d-track d-${m}"><span class="d-fill" style="width:${pct}%"></span></span>`;
+    }
+    return "";
+  }
+
+  function meta(style, show, index) {
+    if (style !== "d") return "Sub | Dub";
+    const m = show.mark;
+    const cls = m === "unwatched" ? "d-unwatched" : `d-meta-${m}`;
+    return `<b class="badge d-status ${cls}" ${pick(index, LABEL[m])}>${LABEL[m]}${CARET}</b> · ${show.episodes} eps`;
+  }
+
+  function card(style, show, index) {
+    return `<div class="card" data-mark="${show.mark}">${style === "a" ? badge(style, show, index) : ""}
+      <div class="poster"><img src="${show.art}" alt="">${style === "a" ? "" : badge(style, show, index)}</div>
+      <div class="title">${show.title}</div>
+      <div class="meta">${meta(style, show, index)}</div>
+    </div>`;
+  }
+
+  function render() {
+    for (const section of document.querySelectorAll("section.option")) {
+      section.querySelector(".row").innerHTML = SHOWS.map((show, index) => card(section.dataset.style, show, index)).join("");
+    }
+  }
+
+  const menu = document.getElementById("menu");
+  let opener = null;
+
+  function closeMenu() {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    opener?.setAttribute("aria-expanded", "false");
+    opener = null;
+  }
+
+  function openMenu(trigger) {
+    closeMenu();
+    const index = Number(trigger.dataset.pick);
+    const show = SHOWS[index];
+    const option = (mark, text) => `<button type="button" role="menuitem" data-mark="${mark}"><span class="dot" style="background:${DOT[mark]}"></span>${text}${show.mark === mark ? '<span class="check">✓</span>' : ""}</button>`;
+    menu.innerHTML = `<div class="hint">${show.title}</div>${ORDER.map((mark) => option(mark, LABEL[mark])).join("")}<div class="sep"></div>${option("unwatched", show.mark === "unwatched" ? "Unwatched" : "Remove from list")}`;
+    menu.dataset.index = index;
+    menu.hidden = false;
+    const box = trigger.getBoundingClientRect();
+    const left = Math.min(box.left + scrollX, scrollX + innerWidth - menu.offsetWidth - 12);
+    const below = box.bottom + 6 + menu.offsetHeight < innerHeight;
+    menu.style.left = `${Math.max(12, left)}px`;
+    menu.style.top = `${(below ? box.bottom + 6 : box.top - menu.offsetHeight - 6) + scrollY}px`;
+    trigger.setAttribute("aria-expanded", "true");
+    opener = trigger;
+    menu.querySelector("button")?.focus({ preventScroll: true });
+  }
+
+  document.addEventListener("click", (event) => {
+    const choice = event.target.closest(".menu button");
+    if (choice) {
+      SHOWS[Number(menu.dataset.index)].mark = choice.dataset.mark;
+      closeMenu();
+      render();
+      return;
+    }
+    const trigger = event.target.closest("[data-pick]");
+    if (trigger) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (opener === trigger) closeMenu();
+      else openMenu(trigger);
+      return;
+    }
+    if (!event.target.closest(".menu")) closeMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      const back = opener;
+      closeMenu();
+      back?.focus();
+    } else if ((event.key === "Enter" || event.key === " ") && event.target.matches?.("[data-pick]")) {
+      event.preventDefault();
+      openMenu(event.target);
+    } else if (!menu.hidden && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      event.preventDefault();
+      const items = [...menu.querySelectorAll("button")];
+      const at = items.indexOf(document.activeElement);
+      items[(at + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+    }
+  });
+  addEventListener("resize", closeMenu);
+
+  render();
+  document.getElementById("unwatched").addEventListener("change", (event) => {
+    document.body.classList.toggle("no-unwatched", !event.target.checked);
+  });
+</script>
+</body>
+</html>

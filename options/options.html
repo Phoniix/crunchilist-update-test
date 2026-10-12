@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Crunchilist</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      @font-face {
+        font-family: "Crunchilist Rounded";
+        src: url("../fonts/nunito-latin.woff2") format("woff2");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      body {
+        margin: 0;
+        font: 400 15px/1.5 "Crunchilist Rounded", "Trebuchet MS", Candara, sans-serif;
+        background: #0c0a09;
+        color: #f7f2eb;
+      }
+      main { max-width: 680px; margin: 0 auto; padding: 40px 20px 72px; }
+      .eyebrow { margin: 0 0 6px; color: #ff8a3d; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { margin: 0; font-size: 32px; line-height: 1.15; }
+      h2 { margin: 0 0 4px; font-size: 16px; }
+      p { margin: 0; color: #d2c6bb; }
+      a { color: #ff8a3d; }
+      .account {
+        display: flex; justify-content: space-between; gap: 16px; align-items: flex-end;
+        padding: 18px; border-radius: 20px; background: #1c1814;
+        border: 1px solid rgba(255, 226, 196, .12);
+      }
+      #status { min-height: 1.4em; margin-top: 14px; color: #f7f2eb; }
+      .steps, .quiet, details { margin-top: 28px; }
+      .steps { list-style: none; margin-left: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+      .steps li {
+        display: grid; grid-template-columns: 32px 1fr; gap: 12px;
+        padding: 16px; border-radius: 18px; background: #1c1814; border: 1px solid rgba(255, 226, 196, .12);
+      }
+      .num {
+        width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center;
+        background: #2c241c; color: #ff8a3d; font-weight: 700; border: 1px solid rgba(255, 138, 61, .35);
+      }
+      label { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; color: #f7f2eb; font-weight: 700; }
+      input, button, .link-btn {
+        font: inherit; border-radius: 12px; padding: 9px 12px;
+      }
+      input { width: 100%; background: #0c0a09; color: #f7f2eb; border: 1px solid rgba(255, 226, 196, .22); }
+      button, .link-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: #ff7a2f; color: #1a0d05; border: 0; font-weight: 700; cursor: pointer; text-decoration: none;
+      }
+      button.secondary, .link-btn.secondary { background: #2a241f; color: #f7f2eb; border: 1px solid rgba(255, 226, 196, .2); }
+      .row, .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+      .copy-row, .reveal { display: flex; gap: 8px; align-items: center; }
+      .copy-row { margin-top: 12px; }
+      .copy-row input, .reveal input { flex: 1; min-width: 0; }
+      .reveal button { flex: none; }
+      .quiet, details {
+        padding: 16px; border-radius: 18px; background: #1c1814; border: 1px solid rgba(255, 226, 196, .12);
+      }
+      summary { cursor: pointer; font-weight: 700; }
+      details p { margin: 8px 0 0; }
+      button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible {
+        outline: 2px solid #ff8a3d; outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="account">
+        <div>
+          <p class="eyebrow">Crunchilist</p>
+          <h1 id="account-name">Not connected</h1>
+          <p id="account-sub">Connect AniList so finished and in-progress marks update your list.</p>
+        </div>
+        <div class="actions" id="connected-actions" hidden>
+          <button id="refresh-anilist" class="secondary" type="button">Refresh list</button>
+          <button id="disconnect-anilist" class="secondary" type="button">Disconnect</button>
+        </div>
+      </header>
+      <p id="status" role="status"></p>
+      <ol class="steps" id="setup">
+        <li>
+          <span class="num">1</span>
+          <div>
+            <h2>Create an AniList app</h2>
+            <p>AniList calls this a client. You only do it once.</p>
+            <div class="row">
+              <a class="link-btn" href="https://anilist.co/settings/developer" target="_blank" rel="noreferrer">Open AniList developer settings</a>
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <div>
+            <h2>Set the redirect URL</h2>
+            <p>In that app, paste this as the redirect URL.</p>
+            <div class="copy-row">
+              <input id="redirect" type="text" readonly aria-label="Redirect URL">
+              <button id="copy-redirect" class="secondary" type="button">Copy</button>
+            </div>
+          </div>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <div>
+            <h2>Paste the client id and secret</h2>
+            <p>Both are on the AniList app you just created.</p>
+            <label>Client id <input id="client" type="text" inputmode="numeric" form="anilist-account"></label>
+            <label>Client secret
+              <span class="reveal">
+                <input id="secret" type="password" autocomplete="off" form="anilist-account" aria-label="Client secret">
+                <button type="button" class="secondary" data-reveal="secret" aria-pressed="false">Show</button>
+              </span>
+            </label>
+          </div>
+        </li>
+        <li>
+          <span class="num">4</span>
+          <div>
+            <h2>Connect</h2>
+            <p>An AniList tab opens. Leave this page open until your name appears above.</p>
+            <div class="row">
+              <button type="submit" form="anilist-account">Connect AniList</button>
+            </div>
+          </div>
+        </li>
+      </ol>
+      <form id="anilist-account" hidden></form>
+      <section class="quiet" id="public-list">
+        <h2>Public username</h2>
+        <p>Skip sign-in and import a public list. A connected account replaces it.</p>
+        <form id="anilist">
+          <label>Public AniList username <input id="user" type="text"></label>
+          <div class="row"><button type="submit" class="secondary">Import public list</button></div>
+        </form>
+      </section>
+      <details>
+        <summary>AI settings</summary>
+        <p id="selected-model">Selected model: Chrome</p>
+        <form id="settings">
+          <p>Free Gemini, Groq, and OpenRouter keys, plus Auto backup between services, are under AI preferences in the Crunchilist app.</p>
+          <label>Optional OpenAI API key
+            <span class="reveal">
+              <input id="key" type="password" autocomplete="off" aria-label="API key">
+              <button type="button" class="secondary" data-reveal="key" aria-pressed="false">Show</button>
+            </span>
+          </label>
+          <div class="row">
+            <button type="submit">Save AI settings</button>
+            <button id="clear" class="secondary" type="button">Clear key</button>
+          </div>
+        </form>
+      </details>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

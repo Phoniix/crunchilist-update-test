@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crunchilist privacy</title>
+  <style>
+    @font-face { font-family: "Inter"; src: url("../fonts/inter-latin.woff2") format("woff2"); font-weight: 100 900; }
+    @font-face { font-family: "Sora"; src: url("../fonts/sora-latin.woff2") format("woff2"); font-weight: 100 900; }
+    :root { color-scheme: dark light; --bg: #100e0c; --text: #f7f2eb; --muted: #b9ada0; --line: rgba(255, 226, 196, .12); --accent: #ff7a2f; }
+    @media (prefers-color-scheme: light) { :root { --bg: #faf6f1; --text: #1d1915; --muted: #6b6158; --line: rgba(60, 40, 20, .12); --accent: #d9560f; } }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.65 Inter, system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+    h1, h2 { font-family: Sora, Inter, sans-serif; letter-spacing: -.01em; }
+    h1 { font-size: 34px; margin: 0 0 6px; }
+    h2 { font-size: 19px; margin: 36px 0 8px; padding-top: 24px; border-top: 1px solid var(--line); }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); font-weight: 600; }
+    ul { padding-left: 20px; }
+    li { margin: 6px 0; }
+    a { color: var(--accent); }
+    .lead { font-size: 17px; color: var(--text); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Privacy</h1>
+    <p>Crunchilist is a browser extension. It has no server and no analytics. The developer never receives your data.</p>
+    <p class="lead">Everything Crunchilist knows about you stays in your browser, except for the requests below, which go straight from your browser to the service named.</p>
+
+    <h2>What stays on your device</h2>
+    <ul>
+      <li><strong>Your list and progress</strong>: statuses, episodes watched, and shows you mark.</li>
+      <li><strong>Settings</strong>: theme, playback, search, notification and badge preferences.</li>
+      <li><strong>Catalog cache</strong>: Crunchyroll titles and AniList details, so pages load fast.</li>
+      <li><strong>Sign-in tokens and API keys</strong>: your AniList token and any AI keys you add. They are kept in Chrome's local extension storage, never synced, and only sent to the service they belong to.</li>
+    </ul>
+    <p>Removing the extension deletes all of it.</p>
+
+    <h2>Crunchyroll</h2>
+    <p>On crunchyroll.com, Crunchilist reads the page you're on and uses your existing Crunchyroll session to load the catalog and, if you ask it to, your watch history. It adds the status badges and the "Back to Crunchilist" button there. It does not read or store your Crunchyroll password, payment details or profile.</p>
+
+    <h2>AniList</h2>
+    <p>If you connect AniList, Crunchilist signs you in through AniList's own page and syncs your list and progress with your account. It also looks up public show details (art, scores, studios, airing dates) on AniList. If you import a public username instead, it only reads that public list.</p>
+
+    <h2>AI ranking</h2>
+    <p>By default, AI ranking uses the model built into Chrome, which runs on your device. If you add a key for an AI provider (OpenAI, Google Gemini, Groq, OpenRouter, or a custom address you enter), searches you rank with AI send that provider your search text, the candidate titles with your status for each, and a short summary of the genres and tags you like. That request is covered by the provider's own privacy policy. Nothing is sent to a provider you haven't added.</p>
+
+    <h2>Trailers</h2>
+    <p>Trailers play from youtube-nocookie.com, YouTube's privacy-enhanced embed, and only when a trailer is on screen. You can turn trailer previews off in Settings.</p>
+
+    <h2>Permissions</h2>
+    <ul>
+      <li><strong>Storage</strong>: keeps your list, settings and catalog cache on your device.</li>
+      <li><strong>Tabs and navigation</strong>: opens episodes in your Crunchyroll tab, reuses it, and offers to move extra Crunchyroll tabs into it.</li>
+      <li><strong>Identity</strong>: the AniList sign-in window.</li>
+      <li><strong>Network rules</strong>: lets trailers play inside the Crunchilist page.</li>
+      <li><strong>Site access</strong>: Crunchyroll, AniList, the listed AI providers and YouTube's embed. Other sites are only reached if you add a custom AI address and allow it.</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy can go to the developer through the extension's Chrome Web Store page.</p>
+  </main>
+</body>
+</html>

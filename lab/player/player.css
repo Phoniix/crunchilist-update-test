@@ -1,0 +1,59 @@
+/* Lab page chrome */
+.lab { padding: 20px 24px 40px; }
+.lab-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.lab-head h1 { margin: 0; font-size: 22px; }
+.lab-badge { padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.lab-source { flex: 1; display: flex; gap: 8px; min-width: 320px; }
+.lab-source input[type=url] { flex: 1; min-width: 0; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); }
+.lab-source input[type=url]:focus { outline: none; border-color: var(--accent); }
+
+/* The player, scoped to .clp so it can sit inside Prism */
+.clp { position: relative; display: flex; gap: 16px; align-items: stretch; }
+.clp-stage { position: relative; flex: 1; min-width: 0; aspect-ratio: 16 / 9; max-height: calc(100vh - 120px); border-radius: var(--radius, 16px); overflow: hidden; background: #000; outline: none; }
+.clp-stage:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 60%, transparent); }
+.clp:fullscreen .clp-stage { max-height: none; border-radius: 0; }
+.clp:fullscreen { background: #000; }
+.clp-video, .clp-embed { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+.clp-video::cue { font-family: var(--font, "Inter", sans-serif); background: rgba(0, 0, 0, .65); }
+
+.clp-top, .clp-controls { position: absolute; left: 0; right: 0; padding: 14px 18px; color: #fff; transition: opacity .25s var(--ease, ease); }
+.clp-top { top: 0; background: linear-gradient(rgba(0, 0, 0, .7), transparent); pointer-events: none; }
+.clp-title { display: flex; gap: 10px; align-items: baseline; font-family: var(--display, "Sora", sans-serif); font-size: 18px; }
+.clp-title b { color: var(--accent); }
+.clp-controls { bottom: 0; padding-top: 40px; background: linear-gradient(transparent, rgba(0, 0, 0, .8)); }
+.clp-stage.idle { cursor: none; }
+.clp-stage.idle .clp-top, .clp-stage.idle .clp-controls { opacity: 0; }
+.clp-stage.embedded .clp-top, .clp-stage.embedded .clp-controls { display: none; }
+
+.clp-seek { position: relative; height: 16px; display: flex; align-items: center; }
+.clp-buffer { position: absolute; left: 0; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .3); pointer-events: none; }
+.clp-seek input { position: relative; z-index: 1; width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; background: transparent; }
+.clp-row { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+.clp-row button { display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 8px; border: 0; border-radius: 10px; background: transparent; color: #fff; cursor: pointer; }
+.clp-row button:hover, .clp-row button:focus-visible { background: rgba(255, 255, 255, .14); outline: none; }
+.clp-row .ico { width: 22px; height: 22px; }
+.clp-volume { width: 90px; accent-color: var(--accent); }
+.clp-time { margin-left: 8px; font-variant-numeric: tabular-nums; font-size: 14px; opacity: .9; }
+.clp-grow { flex: 1; }
+.clp-speed { font-weight: 700; font-size: 14px; }
+
+.clp-flash { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 10px 18px; border-radius: 12px; background: rgba(0, 0, 0, .6); color: #fff; font-weight: 700; opacity: 0; pointer-events: none; }
+.clp-flash.on { animation: clp-flash 1s var(--ease, ease); }
+@keyframes clp-flash { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.9); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 70% { opacity: 1; } 100% { opacity: 0; } }
+
+.clp-side { width: 300px; flex: none; max-height: calc(100vh - 120px); overflow: auto; padding: 14px; border-radius: var(--radius, 16px); background: var(--surface); border: 1px solid var(--line); }
+.clp-side h3 { margin: 4px 6px 10px; font-size: 16px; }
+.clp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.clp-list button { width: 100%; display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; text-align: left; cursor: pointer; }
+.clp-list button:hover { background: var(--surface-2); }
+.clp-list button.on { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.clp-list b { min-width: 28px; color: var(--muted); }
+.clp-list button.on b { color: inherit; }
+.clp-list span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .clp { flex-direction: column; }
+  .clp-side { width: auto; max-height: 40vh; }
+  .clp-volume { display: none; }
+}
+.reduce .clp-flash.on { animation: none; }

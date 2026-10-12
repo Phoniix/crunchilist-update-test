@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crunchilist · Prism</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="core.css">
+<style>
+  body { --font: "Inter", system-ui, sans-serif; --display: "Sora", "Inter", sans-serif; --radius: 16px; --glass: color-mix(in srgb, var(--surface) 55%, transparent); --glass-line: color-mix(in srgb, var(--text) 10%, transparent); overflow-x: hidden; }
+  h1, h2, h3, h4, .page-title, .show-title, .brand { font-family: var(--display); }
+
+  /* Ambient backdrop follows whatever you focus */
+  .ambient { position: fixed; inset: -10%; z-index: -1; pointer-events: none; }
+  .ambient i { position: absolute; inset: 0; background: center / cover; filter: blur(90px) saturate(1.6); opacity: 0; transition: opacity 1.2s ease; transform: scale(1.1); }
+  .ambient i.on { opacity: .38; }
+  html[data-mode="light"] .ambient i.on { opacity: .28; }
+  .ambient::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 0%, transparent, var(--bg) 75%); }
+  .reduce .ambient { display: none; }
+
+  /* Floating header pinned to the top */
+  .nav { position: fixed; top: 12px; left: 16px; right: 16px; height: 62px; padding: 0 10px 0 12px; gap: 4px; border-radius: 20px; background: color-mix(in srgb, var(--surface) 38%, transparent); backdrop-filter: blur(24px) saturate(1.5); border: 1px solid var(--glass-line); transition: background .3s, box-shadow .3s; }
+  .nav.solid { background: color-mix(in srgb, var(--surface) 78%, transparent); box-shadow: 0 16px 50px -20px rgba(0,0,0,.5); }
+  .reduce .nav { background: var(--surface); }
+  .brand { margin-right: 12px; }
+  .brand-logo { width: 38px; height: 38px; }
+  .nav-link { padding: 9px 14px; border-radius: 12px; }
+  .nav-link.on { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+  .kbar { flex: 1; max-width: 460px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 8px 0 14px; border-radius: 13px; background: color-mix(in srgb, var(--bg) 40%, transparent); border: 1px solid var(--glass-line); color: var(--muted); cursor: text; font-size: 14px; }
+  .kbar { min-width: 0; }
+  .kbar-text { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .kbar kbd { flex: none; white-space: nowrap; }
+  .kbar:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--glass-line)); }
+  .kbar kbd { margin-left: auto; padding: 3px 8px; border-radius: 7px; border: 1px solid var(--glass-line); font: 600 12px var(--font); background: var(--surface-2); color: var(--muted); }
+  .nav-spacer { display: none; }
+  .kbar { min-width: 180px; }
+  .nav-btn { border-radius: 12px; }
+
+  main { padding: 98px 36px 70px; max-width: 1760px; margin: 0 auto; }
+  body[data-page="home"] main { padding-top: 0; }
+
+  /* Large opening banner */
+  .hero { position: relative; height: 88vh; min-height: 600px; margin: 0 calc(50% - 50vw + var(--scrollbar, 0px) / 2); overflow: hidden; color: #fff; }
+  .hero-copy, .hero-bars { margin-left: max(0px, calc(50vw - 880px)); }
+  .hero + * { position: relative; z-index: 3; margin-top: -130px; }
+  .hero-bg { position: absolute; inset: 0; background: center 25% / cover; transform: scale(1.03); transition: transform 9s linear; }
+  .hero.go .hero-bg { transform: scale(1.1); }
+  .hero-video { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s; }
+  .hero-video.live { opacity: 1; }
+  .hero-video iframe { position: absolute; top: 50%; left: 50%; width: max(100%, 177.78vh); height: max(100%, 56.25vw); transform: translate(-50%, -50%) scale(1.3); border: 0; pointer-events: none; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,8,12,.88) 0%, rgba(5,8,12,.45) 38%, transparent 65%), linear-gradient(rgba(5,8,12,.5), transparent 20%), linear-gradient(transparent 55%, var(--bg) 98%); }
+  .hero-copy { position: absolute; left: 60px; bottom: 200px; z-index: 2; max-width: 720px; animation: rise .7s var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  .hero-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.12); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.18); font-size: 12px; font-weight: 700; letter-spacing: .04em; margin-bottom: 16px; }
+  .hero-tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .hero h1 { margin: 0 0 14px; font-size: clamp(44px, 4.8vw, 78px); line-height: .98; letter-spacing: -.04em; font-weight: 800; text-shadow: 0 6px 40px rgba(0,0,0,.45); }
+  .hero .peek-meta { font-size: 14px; }
+  .hero p { margin: 0 0 22px; max-width: 560px; opacity: .85; font-size: 15px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .hero .btn { height: 46px; padding: 0 20px; border-radius: 14px; }
+  .hero .btn:not(.accent) { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.18); backdrop-filter: blur(12px); }
+
+  .hero-bars { position: absolute; left: 60px; bottom: 160px; z-index: 3; display: flex; gap: 8px; }
+  .hero-bar { position: relative; width: 52px; height: 18px; padding: 7px 0; border: 0; background: none; cursor: pointer; }
+  .hero-bar::before { content: ""; display: block; height: 4px; border-radius: 2px; background: rgba(255,255,255,.3); transition: background .2s; }
+  .hero-bar:hover::before { background: rgba(255,255,255,.55); }
+  .hero-bar > i { position: absolute; left: 0; top: 7px; height: 4px; width: 0; border-radius: 2px; background: #fff; }
+  .hero-bar.done > i { width: 100%; background: rgba(255,255,255,.75); }
+  .hero-bar.on > i { background: var(--accent); animation: grow var(--dur, 9s) linear forwards; }
+  .hero-bar.paused > i { animation-play-state: paused; }
+  @keyframes grow { to { width: 100%; } }
+  .hero-tip { position: absolute; bottom: 26px; left: 50%; width: 200px; transform: translate(-50%, 6px); opacity: 0; pointer-events: none; transition: .2s var(--ease); border-radius: 12px; overflow: hidden; background: rgba(10,14,20,.8); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.15); text-align: left; }
+  .hero-tip span { display: block; aspect-ratio: 16 / 9; background: center / cover; }
+  .hero-tip b { display: block; padding: 8px 10px; font: 600 12px/1.3 var(--font); color: #fff; }
+  .hero-bar:hover .hero-tip { opacity: 1; transform: translate(-50%, 0); }
+  .hero-sound { position: absolute; right: 36px; bottom: 160px; z-index: 3; color: #fff; background: rgba(0,0,0,.35); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.2); }
+
+  /* Rails with room for cards to grow */
+  .row-head h2 { font-size: 22px; letter-spacing: -.03em; }
+  .rail { padding: 60px 36px 70px; margin: -60px -36px -50px; gap: 18px; }
+  .rail-arrow { top: calc(50% - 40px); background: var(--glass); backdrop-filter: blur(16px); border-color: var(--glass-line); }
+  .rail-arrow.prev { left: -6px; }
+  .rail-arrow.next { right: -6px; }
+  .wide { width: 330px; }
+  .wide-art { border-radius: var(--radius); box-shadow: 0 14px 34px -14px rgba(0,0,0,.6); }
+  .card { transition: z-index 0s .3s; }
+  .poster { border-radius: var(--radius); box-shadow: 0 14px 34px -14px rgba(0,0,0,.6); }
+  .peek { position: absolute; top: -14%; left: 50%; width: 180%; z-index: 40; border-radius: 20px; overflow: hidden; background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(30px) saturate(1.6); border: 1px solid var(--glass-line); box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.62); transition: opacity .22s, transform .3s var(--ease); }
+  .reduce .peek { background: var(--surface); }
+  .card[data-edge="left"] .peek { left: 0; transform: scale(.62); transform-origin: left center; }
+  .card[data-edge="right"] .peek { left: auto; right: 0; transform: scale(.62); transform-origin: right center; }
+  .card:hover { z-index: 40; transition-delay: 0s; }
+  .card:hover .peek { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); transition-delay: .3s; }
+  .card[data-edge]:not([data-edge=""]):hover .peek { transform: scale(1); }
+  .peek-art { overflow: hidden; }
+  .peek-art::after { content: ""; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, color-mix(in srgb, var(--surface) 82%, transparent)); z-index: 1; pointer-events: none; }
+  .peek-body { padding: 4px 16px 16px; position: relative; z-index: 2; }
+  .peek h4 { font-size: 18px; letter-spacing: -.02em; }
+  .peek p { -webkit-line-clamp: 3; }
+  .peek-tags span { background: color-mix(in srgb, var(--text) 10%, transparent); }
+  .peek-actions .btn { border-radius: 12px; }
+  .cap { padding: 12px 2px 0; }
+  .cap .title { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .badge { backdrop-filter: blur(10px); background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.15); }
+  .badge.watching { background: var(--accent); border-color: transparent; }
+
+  .ranked { width: calc(var(--card-w) + 58px); padding-left: 58px; }
+  .rank-num { position: absolute; left: -4px; bottom: 46px; font: 800 136px/1 var(--display); letter-spacing: -.08em; background: linear-gradient(180deg, var(--accent), transparent 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  .set-card, .side-card, .ai-pick, .lib-row, .sync-line, .search-box, .pop { background: var(--glass); backdrop-filter: blur(24px) saturate(1.4); border-color: var(--glass-line); }
+  .reduce .set-card, .reduce .side-card, .reduce .ai-pick, .reduce .lib-row, .reduce .sync-line, .reduce .search-box, .reduce .pop { background: var(--surface); }
+  .drawer { background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(24px); }
+  .show-hero { border-radius: 28px; min-height: 500px; }
+  .btn, .chip, .seg { border-radius: 12px; }
+  .seg button { border-radius: 9px; }
+
+  /* Ctrl+K palette */
+  .kpal { position: fixed; inset: 0; z-index: 250; display: none; place-items: start center; padding-top: 12vh; background: rgba(0,0,0,.4); backdrop-filter: blur(6px); }
+  .kpal.open { display: grid; }
+  .kpal-box { width: min(640px, 92vw); border-radius: 20px; overflow: hidden; background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(30px) saturate(1.6); border: 1px solid var(--glass-line); box-shadow: 0 40px 100px rgba(0,0,0,.5); }
+  .kpal-in { display: flex; align-items: center; gap: 12px; padding: 0 18px; height: 60px; border-bottom: 1px solid var(--glass-line); }
+  .kpal-in input { flex: 1; border: 0; outline: 0; background: transparent; font-size: 17px; }
+  .kpal-list { max-height: 420px; overflow: auto; padding: 8px; }
+  .kpal-list h6 { margin: 8px 10px 6px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .kpal-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 8px 10px; border-radius: 12px; cursor: pointer; }
+  .kpal-item:hover, .kpal-item.sel { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .kpal-item img { width: 40px; height: 56px; object-fit: cover; border-radius: 8px; }
+  .kpal-item b { display: block; font-size: 14px; }
+  .kpal-item small { color: var(--muted); }
+  .kpal-item .ico { color: var(--muted); }
+  .kpal-ask { grid-template-columns: 40px 1fr; }
+  .kpal-ask span:first-child { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--on-accent); }
+
+  .nav .nav-search { display: none; }
+  @media (max-width: 1000px) { .nav-link span, .brand-word { display: none; } .hero-copy, .hero-bars { left: 24px; } main { padding-left: 16px; padding-right: 16px; } .rail { padding-inline: 16px; margin-inline: -16px; } }
+  @media (max-width: 680px) {
+    .nav .kbar { display: none; } .nav .nav-search { display: grid; } .nav-link { padding: 9px 10px; }
+    .hero-copy { left: 20px; right: 20px; max-width: none; } .hero-bars { left: 20px; }
+    .hero .peek-actions { flex-wrap: wrap; } .hero .btn { height: 42px; padding: 0 16px; }
+  }
+  @media (max-width: 480px) { .nav { left: 8px; right: 8px; } .nav [data-route="settings"], .nav .vol { display: none; } }
+</style>
+</head>
+<body>
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script>
+  let slide = 0, slideTimer = 0, videoTimer = 0, heroPlayer = null, ambientFlip = false;
+  let heroRunning = false, heroInView = true, previewPlaying = false, heroClock = 0, slideLeft = 0, videoLeft = -1, heroTrailer = "";
+  const m = Mock.api;
+
+  function home() {
+    const spots = m.popular().filter((s) => m.entry(s)?.status !== "finished").slice(0, 6);
+    const finished = m.lastFinished();
+    return `<section class="hero" data-spots='${JSON.stringify(spots.map((s) => s.id))}'>
+        <div class="hero-bg"></div><div class="hero-video"></div>
+        <div class="hero-copy"></div>
+        <div class="hero-bars">${spots.map((s, i) => `<button class="hero-bar" data-act="hero" data-i="${i}" aria-label="${m.esc(s.title)}"><i></i>
+          <span class="hero-tip"><span style="background-image:url('${s.banner}')"></span><b>${m.esc(s.title)}</b></span></button>`).join("")}</div>
+        ${m.soundButton("nav-btn hero-sound")}
+      </section>
+      ${m.rail("Continue watching", m.inStatus("watching"), { render: m.wide, href: "#list/watching" })}
+      ${m.rail("Picked for you", m.forYou(), { sub: "Rest on a title for the trailer" })}
+      ${m.rail("Top 10 this week", m.popular().slice(0, 10), { ranked: true })}
+      ${m.rail("New and airing", m.fresh().slice(0, 14))}
+      ${finished ? m.rail(`Because you finished ${m.esc(finished.title)}`, m.similar(finished, 14)) : ""}
+      ${m.rail("Your plan to watch", m.inStatus("plan"), { href: "#list/plan" })}`;
+  }
+
+  function setAmbient(url) {
+    const layers = document.querySelectorAll(".ambient i");
+    if (!layers.length || layers[ambientFlip ? 1 : 0].dataset.url === url) return;
+    ambientFlip = !ambientFlip;
+    const next = layers[ambientFlip ? 1 : 0];
+    next.dataset.url = url;
+    next.style.backgroundImage = `url('${url}')`;
+    next.classList.add("on");
+    layers[ambientFlip ? 0 : 1].classList.remove("on");
+  }
+
+  function showSlide(i) {
+    const hero = document.querySelector(".hero");
+    if (!hero) return;
+    const ids = JSON.parse(hero.dataset.spots);
+    slide = (i + ids.length) % ids.length;
+    const s = m.byId.get(ids[slide]);
+    const prefs = m.prefs();
+    const withVideo = prefs.previews && !prefs.reduce && s.trailer;
+    heroPlayer?.destroy(); heroPlayer = null;
+    hero.classList.remove("go"); void hero.offsetWidth; hero.classList.add("go");
+    hero.querySelector(".hero-bg").style.backgroundImage = `url('${s.banner}')`;
+    const copy = hero.querySelector(".hero-copy");
+    copy.style.animation = "none"; void copy.offsetWidth; copy.style.animation = "";
+    copy.innerHTML = `<div class="hero-tag"><i></i>${!m.onCrunchyroll(s) ? "Not on Crunchyroll" : slide === 0 ? "Top pick for you" : "Trending on Crunchyroll"}</div>
+      <h1>${m.esc(s.title)}</h1>
+      <div class="peek-meta"><span class="star">★ ${m.score(s)}</span><span>${s.year}</span><span>${m.seasonCount(s)}</span><span>${s.genres.slice(0, 3).join(" · ")}</span></div>
+      <p>${m.esc(s.about)}</p>
+      <div class="peek-actions" data-show="${s.id}"><button class="btn accent" data-act="watch">${m.icon(m.onCrunchyroll(s) ? "play" : "right")} ${m.playLabel(s)}</button>
+        <button class="btn" data-act="toggle">${m.icon(m.entry(s) ? "check" : "plus")} ${m.entry(s) ? m.STATUS[m.entry(s).status] : "My list"}</button><a class="btn" href="#show/${s.id}">Details</a></div>`;
+    const dur = withVideo ? 30 : 9;
+    hero.querySelectorAll(".hero-bar").forEach((bar, n) => {
+      bar.classList.remove("on", "done"); void bar.offsetWidth;
+      bar.classList.toggle("done", n < slide);
+      bar.classList.toggle("on", n === slide);
+      bar.style.setProperty("--dur", `${dur}s`);
+    });
+    hero.querySelector(".hero-sound").hidden = !withVideo;
+    setAmbient(s.banner);
+    clearTimeout(slideTimer); clearTimeout(videoTimer);
+    slideLeft = dur * 1000;
+    videoLeft = withVideo ? 2000 : -1;
+    heroTrailer = s.trailer;
+    if (heroRunning) startHeroTimers();
+    else hero.querySelector(".hero-bar.on")?.classList.add("paused");
+  }
+
+  // The banner only plays while it is on screen and no card preview or trailer is playing.
+  // Pausing freezes the slide timer and progress bar, and resuming continues where it left off.
+  function startHeroTimers() {
+    heroClock = Date.now();
+    slideTimer = setTimeout(() => showSlide(slide + 1), slideLeft);
+    if (videoLeft >= 0) videoTimer = setTimeout(() => { videoLeft = -1; heroPlayer = m.player(document.querySelector(".hero-video"), heroTrailer); }, videoLeft);
+  }
+  function stopHeroTimers() {
+    clearTimeout(slideTimer); clearTimeout(videoTimer);
+    const spent = Date.now() - heroClock;
+    slideLeft = Math.max(0, slideLeft - spent);
+    if (videoLeft >= 0) videoLeft = Math.max(0, videoLeft - spent);
+  }
+  function syncHero() {
+    const hero = document.querySelector(".hero");
+    const run = Boolean(hero) && heroInView && !previewPlaying && !document.hidden;
+    if (run === heroRunning) return;
+    heroRunning = run;
+    hero?.querySelector(".hero-bar.on")?.classList.toggle("paused", !run);
+    if (run) { startHeroTimers(); heroPlayer?.play(); } else { stopHeroTimers(); heroPlayer?.pause(); }
+  }
+  const heroWatch = new IntersectionObserver(([seen]) => { heroInView = seen.intersectionRatio >= 0.35; syncHero(); }, { threshold: [0, 0.35, 1] });
+  // Resuming waits a moment so gliding from one card to the next doesn't flash the banner back on.
+  let resumeTimer = 0;
+  document.addEventListener("previewchange", (e) => {
+    clearTimeout(resumeTimer);
+    if (e.detail.active) { previewPlaying = true; syncHero(); }
+    else resumeTimer = setTimeout(() => { previewPlaying = false; syncHero(); }, 1500);
+  });  document.addEventListener("visibilitychange", syncHero);
+
+  function palette(open) {
+    let box = document.querySelector(".kpal");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "kpal";
+      box.innerHTML = `<div class="kpal-box"><div class="kpal-in">${m.icon("search")}<input placeholder="Search titles, or describe what you want…"><kbd style="font-size:12px;color:var(--muted)">Esc</kbd></div><div class="kpal-list"></div></div>`;
+      document.body.append(box);
+      box.addEventListener("click", (e) => { if (e.target === box) palette(false); });
+      box.querySelector("input").addEventListener("input", paintPalette);
+      box.querySelector("input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") box.querySelector(".kpal-item.sel")?.click();
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          const items = [...box.querySelectorAll(".kpal-item")];
+          const at = items.findIndex((x) => x.classList.contains("sel"));
+          items[at]?.classList.remove("sel");
+          items[(at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.classList.add("sel");
+          e.preventDefault();
+        }
+      });
+    }
+    box.classList.toggle("open", open);
+    if (open) { const input = box.querySelector("input"); input.value = ""; paintPalette(); setTimeout(() => input.focus(), 10); }
+  }
+  function paintPalette() {
+    const box = document.querySelector(".kpal");
+    const q = box.querySelector("input").value.trim();
+    const hits = (q ? m.SHOWS.filter((s) => `${s.title} ${s.romaji}`.toLowerCase().includes(q.toLowerCase())) : m.inStatus("watching")).slice(0, 6);
+    box.querySelector(".kpal-list").innerHTML = `
+      ${q ? `<h6>Ask AI</h6><div class="kpal-item kpal-ask sel" data-go="#search?q=${encodeURIComponent(q)}"><span>${m.icon("sparkle")}</span><div><b>Find shows like “${m.esc(q)}”</b><small>Mood search with AI picks</small></div></div>` : ""}
+      <h6>${q ? "Titles" : "Continue watching"}</h6>
+      ${hits.map((s, i) => `<div class="kpal-item ${!q && i === 0 ? "sel" : ""}" data-go="#show/${s.id}"><img src="${s.cover}" alt=""><div><b>${m.esc(s.title)}</b><small>${m.entry(s) ? m.STATUS[m.entry(s).status] : s.genres.slice(0, 2).join(" · ")} · ★ ${m.score(s)}</small></div>${m.icon("right")}</div>`).join("") || `<p class="muted" style="padding:0 10px">No titles match. Press Enter to ask AI.</p>`}
+      ${q ? "" : `<h6>Go to</h6>${[["#browse", "Browse by genre", "compass"], ["#airing", "Airing this week", "calendar"], ["#list", "My list", "list"], ["#settings", "Appearance and settings", "palette"]].map(([h, t, ic]) => `<div class="kpal-item kpal-ask" data-go="${h}"><span style="background:var(--surface-2);color:var(--text)">${m.icon(ic)}</span><div><b>${t}</b></div></div>`).join("")}`}`;
+  }
+
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-act],[data-go]");
+    if (!t) return;
+    if (t.dataset.go) { palette(false); location.hash = t.dataset.go; }
+    if (t.dataset.act === "kpal") palette(true);
+    if (t.dataset.act === "hero") showSlide(Number(t.dataset.i));
+  });
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palette(true); }
+    if (e.key === "/" && !e.target.matches("input, textarea")) { e.preventDefault(); palette(true); }
+    if (e.key === "Escape") palette(false);
+  });
+  document.addEventListener("mouseover", (e) => {
+    const card = e.target.closest(".card, .wide");
+    if (card) { const s = m.byId.get(card.dataset.show); if (s) setAmbient(s.banner); }
+  });
+  addEventListener("scroll", () => document.querySelector(".nav")?.classList.toggle("solid", scrollY > 30));
+
+  Mock.start({
+    key: "prism", name: "Prism", palette: "ocean", mode: "dark", previewDelay: 900,
+    home,
+    after(page) {
+      if (!document.querySelector(".ambient")) document.body.insertAdjacentHTML("afterbegin", '<div class="ambient"><i></i><i></i></div>');
+      const nav = document.querySelector(".nav");
+      if (!nav.querySelector(".kbar")) nav.querySelector(".nav-spacer").insertAdjacentHTML("afterend", `<div class="kbar" data-act="kpal">${m.icon("search")}<span class="kbar-text">Search titles or describe a vibe…</span><kbd>Ctrl K</kbd></div><button class="nav-btn nav-search" data-act="kpal" aria-label="Search">${m.icon("search")}</button>`);
+      clearTimeout(slideTimer); clearTimeout(videoTimer); heroPlayer?.destroy(); heroPlayer = null;
+      heroRunning = false; heroInView = true; previewPlaying = false; clearTimeout(resumeTimer); heroWatch.disconnect();
+      if (page === "home") { showSlide(0); heroWatch.observe(document.querySelector(".hero")); syncHero(); }
+      if (page === "show") { const s = m.byId.get(location.hash.split("/")[1]); if (s) setAmbient(s.banner); }
+    },
+  });
+</script>
+</body>
+</html>

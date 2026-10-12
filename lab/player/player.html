@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-palette="midnight" data-mode="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crunchilist Lab: Player</title>
+  <link rel="stylesheet" href="../../app/prism.css">
+  <link rel="stylesheet" href="player.css">
+</head>
+<body class="lab">
+  <header class="lab-head">
+    <span class="lab-badge">Lab</span>
+    <h1>Player</h1>
+    <form class="lab-source" autocomplete="off">
+      <input name="url" type="url" placeholder="Paste a video link (MP4, WebM) or an official YouTube upload" aria-label="Video link">
+      <button class="btn" type="submit">Play link</button>
+      <label class="btn">Open file<input name="file" type="file" accept="video/*" hidden></label>
+    </form>
+  </header>
+  <div id="player"></div>
+  <script type="module" src="lab.js"></script>
+</body>
+</html>

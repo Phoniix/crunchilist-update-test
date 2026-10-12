@@ -1,0 +1,116 @@
+[
+  {
+    "query": "a short romance I have not seen",
+    "labels": ["Romance"],
+    "maxEpisodes": 13,
+    "good": ["Horimiya", "Kaguya-sama: Love is War", "TONIKAWA: Over The Moon For You", "My Dress-Up Darling", "Aharen-san wa Hakarenai", "A Sign of Affection", "Skip and Loafer", "Snow White With The Red Hair", "A Couple of Cuckoos"]
+  },
+  {
+    "query": "something scary",
+    "labels": ["Horror"],
+    "good": ["Another", "Junji Ito Collection", "Higurashi: When They Cry - GOU"]
+  },
+  {
+    "query": "a funny show to unwind after work",
+    "labels": ["Comedy", "Slice of Life", "Iyashikei"],
+    "good": ["Nichijou - My Ordinary Life", "Asobi Asobase - workshop of fun -", "HINAMATSURI", "Grand Blue Dreaming", "Konosuba - God's Blessing on This Wonderful World!", "Laid-Back Camp", "Gintama"]
+  },
+  {
+    "query": "an epic fantasy adventure",
+    "labels": ["Fantasy", "Adventure"],
+    "good": ["Frieren: Beyond Journey's End", "Mushoku Tensei: Jobless Reincarnation", "To Your Eternity", "Fullmetal Alchemist: Brotherhood", "Hunter x Hunter", "One Piece", "The Ancient Magus' Bride"],
+    "bad": ["Uglymug, Epicfighter"]
+  },
+  {
+    "query": "a sad drama that will make me cry",
+    "labels": ["Tragedy"],
+    "good": ["Your Lie in April", "A Silent Voice", "Anohana: The Flower We Saw That Day", "Plastic Memories", "Angel Beats!", "March comes in like a lion", "Josee, the Tiger and the Fish"]
+  },
+  {
+    "query": "a movie for tonight",
+    "format": "MOVIE",
+    "good": ["A Silent Voice", "Suzume", "Josee, the Tiger and the Fish", "Akira", "JUJUTSU KAISEN 0", "One Piece Film: Red"]
+  },
+  {
+    "query": "sports anime about a team",
+    "labels": ["Sports", "Team Sports"],
+    "good": ["Haikyu!!", "Kuroko's Basketball", "BLUE LOCK", "Aoashi", "Yowamushi Pedal", "Free! - Iwatobi Swim Club", "The Prince of Tennis"]
+  },
+  {
+    "query": "something dark and psychological",
+    "labels": ["Psychological"],
+    "good": ["PSYCHO-PASS", "Paranoia Agent", "ERASED", "Steins;Gate", "Ergo Proxy", "Classroom of the Elite", "Tomodachi Game", "ID: INVADED", "The Future Diary"]
+  },
+  { "query": "frieren", "top": "Frieren: Beyond Journey's End" },
+  { "query": "spy family", "top": "SPY x FAMILY" },
+  { "query": "attack on titan", "top": "Attack on Titan" },
+  { "query": "bocchi", "top": "BOCCHI THE ROCK!" },
+  { "persona": "typo", "query": "frieran", "top": "Frieren: Beyond Journey's End" },
+  { "persona": "typo", "query": "one peice", "top": "One Piece" },
+  { "persona": "typo", "query": "demon slayr", "top": "Demon Slayer: Kimetsu no Yaiba" },
+  { "persona": "typo", "query": "atack on titan", "top": "Attack on Titan" },
+  { "persona": "typo", "query": "jujutsu kaisn", "top": "JUJUTSU KAISEN" },
+  {
+    "persona": "slang",
+    "query": "rom com",
+    "labels": ["Romance"],
+    "good": ["Horimiya", "Kaguya-sama: Love is War", "TONIKAWA: Over The Moon For You", "Skip and Loafer"],
+    "bad": ["Gurren Lagann", "One Piece"]
+  },
+  {
+    "persona": "slang",
+    "query": "isekai with an op mc",
+    "labels": ["Isekai", "Reincarnation"],
+    "good": ["That Time I Got Reincarnated as a Slime", "Mushoku Tensei: Jobless Reincarnation", "TSUKIMICHI -Moonlit Fantasy-"]
+  },
+  {
+    "persona": "slang",
+    "query": "cozy cgdct",
+    "labels": ["Iyashikei", "CGDCT", "Slice of Life"],
+    "good": ["Laid-Back Camp", "Non Non Biyori"]
+  },
+  {
+    "persona": "vague",
+    "query": "anything",
+    "bad": ["Ascendance of a Bookworm"]
+  },
+  {
+    "persona": "vague",
+    "query": "something good to watch tonight",
+    "good": ["Fullmetal Alchemist: Brotherhood", "Frieren: Beyond Journey's End", "Steins;Gate"]
+  },
+  {
+    "persona": "show-plus-mood",
+    "query": "like frieren but sadder",
+    "labels": ["Tragedy", "Drama"],
+    "good": ["To Your Eternity", "Anohana: The Flower We Saw That Day"],
+    "bad": ["Frieren: Beyond Journey's End"]
+  },
+  {
+    "persona": "show-plus-mood",
+    "query": "shows like spy x family",
+    "labels": ["Family Life", "Comedy", "Action"],
+    "good": ["Buddy Daddies", "HINAMATSURI"],
+    "bad": ["SPY x FAMILY"]
+  },
+  {
+    "persona": "setting",
+    "query": "Like 86, but in germany",
+    "labels": ["Mecha", "Military", "War"],
+    "good": ["Schwarzes Marken"],
+    "bad": ["86 EIGHTY-SIX"]
+  },
+  {
+    "persona": "setting",
+    "query": "anime that take place in germany and is a mecha anime",
+    "labels": ["Mecha"],
+    "good": ["Schwarzes Marken"]
+  },
+  {
+    "persona": "setting",
+    "query": "anime set in france",
+    "good": ["The Case Study of Vanitas"]
+  },
+  { "persona": "no-match", "query": "xqzv blorp", "none": true },
+  { "persona": "no-match", "query": "qwertyuiop zzz", "none": true }
+]

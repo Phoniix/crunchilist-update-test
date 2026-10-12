@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Crunchilist by Phoniix</title>
+  <defs>
+    <linearGradient id="cl-ember" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8f3f"/>
+      <stop offset="1" stop-color="#ef5418"/>
+    </linearGradient>
+    <linearGradient id="cl-flame" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#f05a1a"/>
+      <stop offset=".55" stop-color="#f47521"/>
+      <stop offset="1" stop-color="#ffc54d"/>
+    </linearGradient>
+    <path id="cl-phoniix" fill-rule="evenodd" d="M68.98,29.53l1862.04,315.6L952.66,692.29V1970.47L116.32,234.67l867.9,110.46H305.68L873.76,1591.75V613.39l710.1-268.26Z"/>
+    <mask id="cl-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/>
+      <use href="#cl-phoniix" transform="translate(210 116) scale(.153)" fill="#000" stroke="#000" stroke-width="200" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <path fill="url(#cl-ember)" mask="url(#cl-cut)" d="M406.51,82.09A230,230 0 1 0 406.51,429.91A190,190 0 1 1 406.51,82.09Z"/>
+  <use href="#cl-phoniix" transform="translate(210 116) scale(.153)" fill="url(#cl-flame)" stroke="url(#cl-flame)" stroke-width="60" stroke-linejoin="round"/>
+</svg>
