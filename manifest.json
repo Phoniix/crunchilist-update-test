@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Crunchilist",
-  "version": "1.0.114",
+  "version": "1.0.115",
   "minimum_chrome_version": "114",
   "description": "Search anime by title or mood, get AI-ranked picks, and track what you watch with AniList.",
   "permissions": ["storage", "unlimitedStorage", "identity", "tabs", "webNavigation", "declarativeNetRequestWithHostAccess"],
