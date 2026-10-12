@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { gitBlobSha, isPackagePath, packageFiles, rawUrl, staleFiles } from "../lib/update-files.js";
+import { gitBlobSha, isPackagePath, packageFiles, rawUrl, sameAsGitHub, staleFiles, withoutCarriageReturns } from "../lib/update-files.js";
 
 const MANIFEST = { content_scripts: [{ js: ["content/page-hook.js", "content/crunchilist.js"], css: [] }] };
 
@@ -34,6 +34,16 @@ test("GitHub's tree is cut down to blobs the extension ships", () => {
 test("dropped package files are removed, everything else in the folder stays", () => {
   const next = [{ path: "app/prism.js" }];
   assert.deepEqual(staleFiles(["app/prism.js", "app/old.js", "notes.txt", "dev/x.js", "manifest.json", "content/main.js"], next, MANIFEST), ["app/old.js"]);
+});
+
+test("a Windows checkout with CRLF line endings still matches GitHub's LF copy", async () => {
+  const github = await gitBlobSha(new TextEncoder().encode("a\nb\n"));
+  assert.equal(await sameAsGitHub(new TextEncoder().encode("a\r\nb\r\n"), github), true);
+  assert.equal(await sameAsGitHub(new TextEncoder().encode("a\nb\n"), github), true);
+  assert.equal(await sameAsGitHub(new TextEncoder().encode("a\r\nc\r\n"), github), false);
+  assert.equal(await sameAsGitHub(null, github), false);
+  assert.deepEqual([...withoutCarriageReturns(new TextEncoder().encode("x\r\ny\rz"))], [...new TextEncoder().encode("x\ny\rz")]);
+  assert.equal(withoutCarriageReturns(new TextEncoder().encode("plain")), null);
 });
 
 test("raw links encode each part of the path", () => {

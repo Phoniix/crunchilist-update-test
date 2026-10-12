@@ -1,7 +1,7 @@
 // The Update button: writes a newer version from GitHub into the folder this copy was loaded from, then reloads.
 // Every file is downloaded and checked against GitHub's fingerprint before the first one is written.
 import { REPO, compareVersions } from "../lib/update-check.js";
-import { PACKAGE_FOLDERS, contentFiles, gitBlobSha, packageFiles, rawUrl, staleFiles, storeManifest } from "../lib/update-files.js";
+import { PACKAGE_FOLDERS, contentFiles, gitBlobSha, packageFiles, rawUrl, sameAsGitHub, staleFiles, storeManifest } from "../lib/update-files.js";
 
 const API = `https://api.github.com/repos/${REPO}`;
 const DOWNLOADS_AT_ONCE = 6;
@@ -199,7 +199,7 @@ export async function installUpdate(latest, onStep = () => {}, { settleMs = SETT
   const changed = [];
   for (const file of files) {
     const current = await readBytes(dir, file.path);
-    if (current && (await gitBlobSha(current)) === file.sha) continue;
+    if (await sameAsGitHub(current, file.sha)) continue;
     old.set(file.path, current);
     changed.push(file);
   }

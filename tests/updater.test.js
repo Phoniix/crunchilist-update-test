@@ -100,8 +100,8 @@ async function setUp({ local = {}, tamper = null, repo = REPO_FILES, block = () 
 }
 
 test("an update writes the new files, drops removed ones, and writes the manifest last", async () => {
-  const { dir, run } = await setUp({ local: { "lib/a.js": "new lib" } });
-  assert.deepEqual(await run(), { version: "1.0.200", changed: 2 });
+  const { dir, run } = await setUp({ local: { "lib/a.js": "new lib", "content/crunchilist.js": "bundle" } });
+  assert.deepEqual(await run(), { version: "1.0.200", changed: 1 });
   assert.ok(!dir.log.includes("lib/a.js"), "files that already match are not rewritten");
   assert.ok(dir.log.includes(".crunchilist-update/app/app.js"), "changed files are test-written first");
   assert.ok(!dir.children.has(".crunchilist-update"), "the test folder is removed");
@@ -123,6 +123,14 @@ test("a file that doesn't match GitHub's fingerprint stops the update before any
   await assert.rejects(run(), { code: "integrity" });
   assert.deepEqual(dir.log, []);
   assert.equal(await read(dir, "app/app.js"), "old app");
+});
+
+test("files checked out with Windows line endings are not rewritten", async () => {
+  const repo = { ...REPO_FILES, "lib/a.js": "line one\nline two\n" };
+  const { dir, run } = await setUp({ repo, local: { "lib/a.js": "line one\r\nline two\r\n" } });
+  await run();
+  assert.ok(!dir.log.some((path) => path.endsWith("lib/a.js")));
+  assert.equal(await read(dir, "lib/a.js"), "line one\r\nline two\r\n");
 });
 
 test("a file the antivirus removes during the test write leaves the working copy untouched", async () => {
