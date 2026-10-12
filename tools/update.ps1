@@ -81,9 +81,15 @@ function LatestRef {
   "master"
 }
 
+function Blocked([string]$file) {
+  "Your antivirus blocked $file, so nothing was changed. This is a false alarm on Crunchilist's own files. Allow the Crunchilist folder in your antivirus (Windows Security > Virus & threat protection > Exclusions) and run update.cmd again, or get the zip from https://github.com/$Repo/releases."
+}
+
 function WriteFailure([string]$file, $record) {
   $error0 = $record.Exception
   while ($error0.InnerException) { $error0 = $error0.InnerException }
+  # 225 / 226: Windows refused the file because an antivirus flagged it.
+  if (($error0.HResult -band 0xFFFF) -in 225, 226) { return Blocked $file }
   if (($error0.HResult -band 0xFFFF) -in 39, 112) { return "Your disk is full, so $file couldn't be written. Nothing was changed. Free up some space and run update.cmd again." }
   "Couldn't write $file ($($error0.Message.Trim())). Nothing was changed. Close anything using the Crunchilist folder and run update.cmd again."
 }
@@ -130,11 +136,11 @@ try {
   $stage = Join-Path $work "files"
   [IO.Compression.ZipFile]::ExtractToDirectory($archive, $stage)
   Start-Sleep -Milliseconds $SettleMs
+  # Reading each file back is what makes an antivirus decide on it, so a flagged file shows up here, before anything changes.
   foreach ($entry in $entries) {
-    $path = Local $stage $entry.Path
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -ne $entry.Size) {
-      throw "Your antivirus removed $($entry.Path.Substring($prefix.Length)) from the download, so nothing was changed. Allow the Crunchilist folder in your antivirus, or get the zip from https://github.com/$Repo/releases."
-    }
+    $size = -1
+    try { $size = [IO.File]::ReadAllBytes((Local $stage $entry.Path)).Length } catch { }
+    if ($size -ne $entry.Size) { throw (Blocked $entry.Path.Substring($prefix.Length)) }
   }
   $source = Local $stage $prefix
 
@@ -195,9 +201,9 @@ try {
     Start-Sleep -Milliseconds $SettleMs
     foreach ($file in $changed) {
       $path = Local $Root $file
-      if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Text $path) -cne (Text (Local $source $file))) {
-        throw "Your antivirus blocked $file while it was being written, so nothing was changed. Allow the Crunchilist folder in your antivirus, or get the zip from https://github.com/$Repo/releases."
-      }
+      $same = $false
+      try { $same = (Text $path) -ceq (Text (Local $source $file)) } catch { }
+      if (-not $same) { throw (Blocked $file) }
     }
     foreach ($file in $stale) {
       Remove-Item -LiteralPath (Local $Root $file) -Force

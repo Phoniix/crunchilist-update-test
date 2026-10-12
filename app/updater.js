@@ -265,4 +265,3 @@ async function install(latest, onStep, { settleMs = SETTLE_MS, folders = savedFo
   await writeFile(dir, "manifest.json", manifestBytes);
   return { version: manifest.version, changed: changed.length };
 }
-// update test 1.0.115
